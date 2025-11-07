@@ -1,7 +1,36 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { useEffect, useRef } from "react";
+
+declare global {
+  interface Window {
+    VANTA: any;
+  }
+}
 
 const Hero = () => {
+  const vantaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (vantaRef.current && window.VANTA) {
+      window.VANTA.NET({
+        el: vantaRef.current,
+        mouseControls: true,
+        touchControls: true,
+        gyroControls: false,
+        minHeight: 200,
+        minWidth: 200,
+        scale: 1,
+        scaleMobile: 1,
+        color: 0x5d9c6,
+        backgroundColor: 0x0,
+        points: 17,
+        maxDistance: 30,
+        spacing: 18,
+      });
+    }
+  }, []);
+
   const scrollToContact = () => {
     document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -9,7 +38,8 @@ const Hero = () => {
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
       <div
-        className="absolute inset-0 z-0 bg-gradient-to-br from-primary via-primary/95 to-primary/90"
+        ref={vantaRef}
+        className="absolute inset-0 z-0"
       />
       
       <div className="container relative z-10 px-4 mx-auto">
