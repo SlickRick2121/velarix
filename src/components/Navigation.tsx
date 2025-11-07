@@ -1,10 +1,15 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  const isHomePage = location.pathname === '/';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -15,13 +20,27 @@ const Navigation = () => {
   }, []);
 
   const scrollToSection = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    if (!isHomePage) {
+      navigate('/');
+      setTimeout(() => {
+        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    }
+    setIsMobileMenuOpen(false);
+  };
+  
+  const handleNavigation = (path: string) => {
+    navigate(path);
     setIsMobileMenuOpen(false);
   };
 
   const navLinks = [
     { label: 'Services', id: 'services' },
     { label: 'About', id: 'about' },
+    { label: 'Portfolio', id: 'portfolio' },
+    { label: 'Blog', path: '/blog' },
     { label: 'Contact', id: 'contact' }
   ];
 
@@ -34,7 +53,13 @@ const Navigation = () => {
       <div className="container px-4 mx-auto">
         <div className="flex items-center justify-between h-20">
           <button 
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            onClick={() => {
+              if (isHomePage) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              } else {
+                navigate('/');
+              }
+            }}
             className="text-2xl font-bold hover:text-accent transition-colors tracking-tight"
           >
             Vela<span className="text-accent">.</span>
@@ -44,8 +69,8 @@ const Navigation = () => {
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
               <button
-                key={link.id}
-                onClick={() => scrollToSection(link.id)}
+                key={link.label}
+                onClick={() => link.path ? handleNavigation(link.path) : scrollToSection(link.id!)}
                 className="text-foreground hover:text-accent transition-colors font-medium"
               >
                 {link.label}
@@ -78,8 +103,8 @@ const Navigation = () => {
             <div className="flex flex-col gap-4">
               {navLinks.map((link) => (
                 <button
-                  key={link.id}
-                  onClick={() => scrollToSection(link.id)}
+                  key={link.label}
+                  onClick={() => link.path ? handleNavigation(link.path) : scrollToSection(link.id!)}
                   className="text-foreground hover:text-accent transition-colors font-medium text-left px-4 py-2"
                 >
                   {link.label}
