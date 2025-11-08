@@ -42,8 +42,8 @@ export default function Index() {
               scaleMobile: 1.00,
               color: '#ffffff',
               backgroundColor: 'rgba(0, 0, 0, 0.05)',
-              backgroundAlpha: 0.4,
-              points: 17.00,
+              backgroundAlpha: 0.8,
+              points: 25.00,
               maxDistance: 25.00,
               spacing: 18.00
             });
