@@ -40,8 +40,8 @@ export default function Index() {
               minWidth: 200.00,
               scale: 1.00,
               scaleMobile: 1.00,
-              color: '#06b6d4', // Cyan blue - vibrant and visible
-              backgroundColor: 'rgba(18, 18, 18, 0.01)',
+              color: '#009FB7', // Moonstone - primary brand color
+              backgroundColor: 'rgba(0, 0, 0, 0.01)',
               backgroundAlpha: 0.1,
               points: 20.00, // More points for better visibility
               maxDistance: 25.00, // Longer connections for visibility

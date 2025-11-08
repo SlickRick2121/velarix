@@ -18,86 +18,48 @@ const PageTransition = ({ children }: { children: React.ReactNode }) => {
     <>
       {isTransitioning && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background">
-          <div className="loader">
-            <div className="loader-square"></div>
-            <div className="loader-square"></div>
-            <div className="loader-square"></div>
-            <div className="loader-square"></div>
-            <div className="loader-square"></div>
-            <div className="loader-square"></div>
-            <div className="loader-square"></div>
-          </div>
+          <aside className="page-loader">
+            <div style={{ "--s": 0 } as React.CSSProperties} className="aro"></div>
+            <div style={{ "--s": 1 } as React.CSSProperties} className="aro"></div>
+            <div style={{ "--s": 2 } as React.CSSProperties} className="aro"></div>
+            <div style={{ "--s": 3 } as React.CSSProperties} className="aro"></div>
+            <div style={{ "--s": 4 } as React.CSSProperties} className="aro"></div>
+            <div style={{ "--s": 5 } as React.CSSProperties} className="aro"></div>
+            <div style={{ "--s": 6 } as React.CSSProperties} className="aro"></div>
+            <div style={{ "--s": 7 } as React.CSSProperties} className="aro"></div>
+            <div style={{ "--s": 8 } as React.CSSProperties} className="aro"></div>
+            <div style={{ "--s": 9 } as React.CSSProperties} className="aro"></div>
+            <div style={{ "--s": 10 } as React.CSSProperties} className="aro"></div>
+            <div style={{ "--s": 11 } as React.CSSProperties} className="aro"></div>
+            <div style={{ "--s": 12 } as React.CSSProperties} className="aro"></div>
+            <div style={{ "--s": 13 } as React.CSSProperties} className="aro"></div>
+            <div style={{ "--s": 14 } as React.CSSProperties} className="aro"></div>
+          </aside>
           <style>{`
-            .loader {
+            .page-loader {
+              width: 300px;
+              height: 300px;
               position: relative;
-              width: 48px;
-              height: 48px;
-              transform: rotate(45deg);
+              transform-style: preserve-3d;
+              transform: perspective(500px) rotateX(60deg);
             }
 
-            .loader-square {
+            .page-loader .aro {
               position: absolute;
-              width: 14px;
-              height: 14px;
-              background: hsl(var(--accent));
-              border-radius: 2px;
-              animation: loader-square 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+              inset: calc(var(--s) * 10px);
+              box-shadow: inset 0 0 80px rgba(0, 159, 183, 0.6);
+              clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+              animation: up_and_down 3s infinite ease-in-out both;
+              animation-delay: calc(var(--s) * -0.1s);
             }
 
-            .loader-square:nth-child(1) {
-              top: 0;
-              left: 0;
-              animation-delay: 0s;
-            }
-
-            .loader-square:nth-child(2) {
-              top: 0;
-              left: 17px;
-              animation-delay: 0.1s;
-            }
-
-            .loader-square:nth-child(3) {
-              top: 0;
-              left: 34px;
-              animation-delay: 0.2s;
-            }
-
-            .loader-square:nth-child(4) {
-              top: 17px;
-              left: 34px;
-              animation-delay: 0.3s;
-            }
-
-            .loader-square:nth-child(5) {
-              top: 34px;
-              left: 34px;
-              animation-delay: 0.4s;
-            }
-
-            .loader-square:nth-child(6) {
-              top: 34px;
-              left: 17px;
-              animation-delay: 0.5s;
-            }
-
-            .loader-square:nth-child(7) {
-              top: 34px;
-              left: 0;
-              animation-delay: 0.6s;
-            }
-
-            @keyframes loader-square {
-              0%, 10% {
-                transform: translate(0, 0) scale(1);
-                opacity: 1;
+            @keyframes up_and_down {
+              0%,
+              100% {
+                transform: translateZ(-100px) rotate(0deg);
               }
               50% {
-                transform: translate(0, 0) scale(0.5);
-                opacity: 0.5;
-              }
-              100% {
-                transform: translate(0, 0) scale(1);
-                opacity: 1;
+                transform: translateZ(100px) rotate(90deg);
               }
             }
           `}</style>

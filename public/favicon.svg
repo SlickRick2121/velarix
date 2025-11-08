@@ -1,0 +1,44 @@
+<svg width="32" height="32" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="glowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00D9FF;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#009FB7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0066CC;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- VELARIX Logo -->
+  <g transform="scale(0.5)" filter="url(#glow)">
+    <!-- V - with split design on left -->
+    <path d="M 10 10 L 10 50 L 15 50 L 15 30 L 20 50 L 30 50 L 20 30 L 20 10 Z" fill="url(#glowGradient)"/>
+    
+    <!-- E -->
+    <path d="M 40 10 L 40 50 L 70 50 L 70 43 L 50 43 L 50 33 L 65 33 L 65 27 L 50 27 L 50 17 L 70 17 L 70 10 Z" fill="url(#glowGradient)"/>
+    
+    <!-- L -->
+    <path d="M 80 10 L 80 50 L 110 50 L 110 43 L 90 43 L 90 10 Z" fill="url(#glowGradient)"/>
+    
+    <!-- A - open top, no crossbar -->
+    <path d="M 120 10 L 120 50 L 160 50 L 160 43 L 140 43 L 140 17 L 160 17 L 160 10 Z" fill="url(#glowGradient)"/>
+    <rect x="140" y="30" width="20" height="13" fill="url(#glowGradient)"/>
+    
+    <!-- R - extended angled leg -->
+    <path d="M 170 10 L 170 50 L 200 50 L 200 30 L 185 30 L 200 10 Z" fill="url(#glowGradient)"/>
+    <rect x="185" y="30" width="15" height="13" fill="url(#glowGradient)"/>
+    <path d="M 185 43 L 200 43 L 210 50 L 195 50 Z" fill="url(#glowGradient)"/>
+    
+    <!-- I -->
+    <path d="M 220 10 L 220 50 L 240 50 L 240 10 Z" fill="url(#glowGradient)"/>
+    
+    <!-- X - clean and angular -->
+    <path d="M 250 10 L 250 20 L 265 35 L 250 50 L 250 55 L 275 35 L 250 15 Z" fill="url(#glowGradient)"/>
+    <path d="M 250 15 L 275 35 L 250 55 L 265 45 L 250 35 L 265 35 Z" fill="url(#glowGradient)"/>
+  </g>
+</svg>

@@ -82,6 +82,8 @@ export default function Login() {
         errorMessage = "Popup was blocked. Please allow popups for this site.";
       } else if (error.code === 'auth/configuration-not-found') {
         errorMessage = "Google Sign-In is not enabled in Firebase. Please enable it in Firebase Console → Authentication → Sign-in method.";
+      } else if (error.code === 'auth/unauthorized-domain') {
+        errorMessage = "This domain is not authorized. Please add this domain to Firebase Console → Authentication → Settings → Authorized domains.";
       } else if (error.message) {
         errorMessage = error.message;
       }

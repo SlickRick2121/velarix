@@ -57,8 +57,8 @@ const ServiceHero = ({ title, subtitle, icon }: ServiceHeroProps) => {
       </div>
       
       {/* Radial Gradients */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(6,182,212,0.15),transparent_50%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(6,182,212,0.15),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,159,183,0.15),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(0,159,183,0.15),transparent_50%)]" />
       
       <div 
         ref={ref as any}

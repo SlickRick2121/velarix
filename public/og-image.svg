@@ -1,0 +1,56 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a1a1f;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#051014;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="glowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00D9FF;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#009FB7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0066CC;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+  
+  <!-- VELARIX Logo - Centered and scaled -->
+  <g transform="translate(300, 200)" filter="url(#glow)">
+    <!-- V - with split design on left -->
+    <path d="M 0 0 L 0 80 L 10 80 L 10 50 L 20 80 L 40 80 L 20 50 L 20 0 Z" fill="url(#glowGradient)"/>
+    
+    <!-- E -->
+    <path d="M 60 0 L 60 80 L 120 80 L 120 70 L 80 70 L 80 50 L 110 50 L 110 40 L 80 40 L 80 10 L 120 10 L 120 0 Z" fill="url(#glowGradient)"/>
+    
+    <!-- L -->
+    <path d="M 140 0 L 140 80 L 220 80 L 220 70 L 160 70 L 160 0 Z" fill="url(#glowGradient)"/>
+    
+    <!-- A - open top, no crossbar -->
+    <path d="M 240 0 L 240 80 L 320 80 L 320 70 L 280 70 L 280 10 L 320 10 L 320 0 Z" fill="url(#glowGradient)"/>
+    <rect x="280" y="50" width="40" height="20" fill="url(#glowGradient)"/>
+    
+    <!-- R - extended angled leg -->
+    <path d="M 340 0 L 340 80 L 420 80 L 420 50 L 370 50 L 420 0 Z" fill="url(#glowGradient)"/>
+    <rect x="370" y="50" width="50" height="20" fill="url(#glowGradient)"/>
+    <path d="M 370 70 L 420 70 L 440 80 L 380 80 Z" fill="url(#glowGradient)"/>
+    
+    <!-- I -->
+    <path d="M 460 0 L 460 80 L 500 80 L 500 0 Z" fill="url(#glowGradient)"/>
+    
+    <!-- X - clean and angular -->
+    <path d="M 520 0 L 520 20 L 550 40 L 520 80 L 520 90 L 580 40 L 520 10 Z" fill="url(#glowGradient)"/>
+    <path d="M 520 10 L 580 40 L 520 90 L 550 70 L 520 50 L 550 40 Z" fill="url(#glowGradient)"/>
+  </g>
+  
+  <!-- Subtitle -->
+  <text x="600" y="400" font-family="Arial, sans-serif" font-size="36" fill="#009FB7" text-anchor="middle" opacity="0.9" font-weight="300">
+    Digital Studio
+  </text>
+</svg>
