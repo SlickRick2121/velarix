@@ -46,7 +46,7 @@ const Contact = () => {
         `Name: ${validatedData.name}\nEmail: ${validatedData.email}\nProject Type: ${validatedData.projectType}\n\nMessage:\n${validatedData.message}`
       );
       
-      window.location.href = `mailto:hello@vela.digital?subject=${subject}&body=${body}`;
+      window.location.href = `mailto:hello@velarix.digital?subject=${subject}&body=${body}`;
       
       toast({
         title: "Opening email client",
@@ -197,10 +197,10 @@ const Contact = () => {
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-accent" />
                   <a 
-                    href="mailto:hello@vela.digital" 
+                    href="mailto:hello@velarix.digital" 
                     className="hover:text-accent transition-colors"
                   >
-                    hello@vela.digital
+                    hello@velarix.digital
                   </a>
                 </div>
               </div>

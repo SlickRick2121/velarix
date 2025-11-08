@@ -16,7 +16,7 @@ const Hero = () => {
         <div className="max-w-4xl mx-auto text-center text-white">
           <div className="mb-8">
             <h1 className="mb-4 text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight">
-              Vela<span className="text-accent">.</span>
+              Velarix<span className="text-accent">.</span>
             </h1>
             <p className="text-xl md:text-2xl font-light tracking-wide text-gray-300">
               Digital Studio

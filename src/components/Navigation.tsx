@@ -62,7 +62,7 @@ const Navigation = () => {
             }}
             className="text-2xl font-bold hover:text-accent transition-colors tracking-tight"
           >
-            Vela<span className="text-accent">.</span>
+            Velarix<span className="text-accent">.</span>
           </button>
           
           {/* Desktop Navigation */}

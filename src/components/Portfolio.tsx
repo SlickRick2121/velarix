@@ -11,7 +11,7 @@ const projects = [
     description: "Complete digital transformation for a local bakery, including e-commerce integration and online ordering system.",
     technologies: ["React", "Shopify", "Tailwind CSS"],
     testimonial: {
-      text: "Vela transformed our online presence. Sales increased by 150% in the first quarter.",
+      text: "Velarix transformed our online presence. Sales increased by 150% in the first quarter.",
       author: "Sarah Mitchell",
       role: "Owner, Sweet Traditions Bakery"
     }

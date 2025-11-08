@@ -28,7 +28,7 @@ const About = () => {
                 Where Craft Meets Code
               </h2>
               <p className="text-lg text-muted-foreground mb-6 leading-relaxed font-light">
-                Vela is a boutique digital studio dedicated to empowering small businesses and independent creators with refined, personalized digital solutions.
+                Velarix is a boutique digital studio dedicated to empowering small businesses and independent creators with refined, personalized digital solutions.
               </p>
               <p className="text-lg text-muted-foreground mb-8 leading-relaxed font-light">
                 Operating across the Netherlands and United States, I bring a unique cross-border perspective to help you navigate the modern digital landscape with elegance and precision.
