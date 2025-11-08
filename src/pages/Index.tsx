@@ -1,59 +1,10 @@
-import { useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import AnimatedBackground from '@/components/AnimatedBackground';
 
 export default function VelarixLanding() {
-  const navigate = useNavigate();
-  const vantaRef = useRef(null);
-  const vantaEffect = useRef(null);
-
-  useEffect(() => {
-    if (!vantaEffect.current) {
-      // Load THREE.js
-      const threeScript = document.createElement('script');
-      threeScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js';
-      threeScript.async = true;
-      
-      threeScript.onload = () => {
-        // Load Vanta.js NET effect
-        const vantaScript = document.createElement('script');
-        vantaScript.src = 'https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js';
-        vantaScript.async = true;
-        
-        vantaScript.onload = () => {
-          if (window.VANTA && vantaRef.current) {
-            vantaEffect.current = window.VANTA.NET({
-              el: vantaRef.current,
-              mouseControls: true,
-              touchControls: true,
-              gyroControls: false,
-              minHeight: 200.00,
-              minWidth: 200.00,
-              scale: 1.00,
-              scaleMobile: 1.00,
-              color: 0x5d996,
-              backgroundColor: 0x0,
-              points: 17.00,
-              maxDistance: 30.00,
-              spacing: 18.00
-            });
-          }
-        };
-        
-        document.body.appendChild(vantaScript);
-      };
-      
-      document.body.appendChild(threeScript);
-    }
-
-    return () => {
-      if (vantaEffect.current) {
-        vantaEffect.current.destroy();
-      }
-    };
-  }, []);
-
   return (
-    <div ref={vantaRef} className="relative min-h-screen w-full overflow-hidden">
+    <>
+      <AnimatedBackground />
+      <div className="relative min-h-screen w-full overflow-hidden">
       {/* Navigation */}
       <nav className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-8 py-6">
         <div className="text-2xl font-bold text-white">
@@ -113,5 +64,6 @@ export default function VelarixLanding() {
         </div>
       </div>
     </div>
+    </>
   );
 }
