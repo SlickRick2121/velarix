@@ -62,9 +62,29 @@ export default function Login() {
     try {
       const { signInWithPopup } = await import('firebase/auth');
       const { auth, googleProvider } = await import('@/lib/firebase');
+      const { notifyUserCreated, notifyUserLogin } = await import('@/lib/discord');
       
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
+      const isNewUser = result.user.metadata.creationTime === result.user.metadata.lastSignInTime;
+      
+      // Send Discord notification
+      if (isNewUser) {
+        await notifyUserCreated({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          providerId: 'google.com',
+        });
+      } else {
+        await notifyUserLogin({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          providerId: 'google.com',
+        });
+      }
       
       // User is automatically set via onAuthStateChanged in AuthContext
       toast({
@@ -156,6 +176,27 @@ export default function Login() {
       }
 
       const result = await confirmationResult.confirm(verificationCode);
+      const user = result.user;
+      const { notifyUserCreated, notifyUserLogin } = await import('@/lib/discord');
+      
+      // Check if this is a new user (creation time equals last sign in time)
+      const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
+      
+      // Send Discord notification
+      if (isNewUser) {
+        await notifyUserCreated({
+          uid: user.uid,
+          phoneNumber: user.phoneNumber,
+          providerId: 'phone',
+        });
+      } else {
+        await notifyUserLogin({
+          uid: user.uid,
+          phoneNumber: user.phoneNumber,
+          providerId: 'phone',
+        });
+      }
+      
       toast({
         title: "Welcome!",
         description: `Successfully logged in with phone number`,
