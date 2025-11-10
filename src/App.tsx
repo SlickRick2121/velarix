@@ -11,7 +11,6 @@ import Index from "./pages/Index";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Login from "./pages/Login";
-import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import Services from "./pages/Services";
 import WebsiteEcommerce from "./pages/WebsiteEcommerce";
@@ -38,7 +37,6 @@ const App = () => (
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/profile" element={<Profile />} />
                 <Route path="/website-ecommerce" element={<WebsiteEcommerce />} />
                 <Route path="/branding-content" element={<BrandingContent />} />
                 <Route path="/technical-automation" element={<TechnicalAutomation />} />

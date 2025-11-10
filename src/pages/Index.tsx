@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import Navigation from '@/components/Navigation';
-import { useAuth } from '@/contexts/AuthContext';
 import Hero from '@/components/Hero';
 import Services from '@/components/Services';
 import About from '@/components/About';
