@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogIn, LogOut } from "lucide-react";
+import { Menu, X, LogIn, LogOut, User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -98,15 +98,26 @@ const Navigation = () => {
               );
             })}
             {isAuthenticated ? (
-              <button
-                onClick={handleLogout}
-                className="group relative px-4 py-2 text-sm font-medium text-foreground bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl overflow-hidden transition-all duration-300 hover:bg-white/10 hover:border-white/30 hover:scale-105 btn-modern"
-              >
-                <span className="relative z-10 flex items-center gap-2">
-                  <LogOut className="h-4 w-4 transition-transform group-hover:rotate-12" />
-                  Logout
-                </span>
-              </button>
+              <>
+                <button
+                  onClick={() => navigate('/profile')}
+                  className="group relative px-4 py-2 text-sm font-medium text-foreground bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl overflow-hidden transition-all duration-300 hover:bg-white/10 hover:border-white/30 hover:scale-105 btn-modern"
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Profile
+                  </span>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="group relative px-4 py-2 text-sm font-medium text-foreground bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl overflow-hidden transition-all duration-300 hover:bg-white/10 hover:border-white/30 hover:scale-105 btn-modern"
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    <LogOut className="h-4 w-4 transition-transform group-hover:rotate-12" />
+                    Logout
+                  </span>
+                </button>
+              </>
             ) : (
               <button
                 onClick={() => navigate('/login')}
@@ -162,15 +173,29 @@ const Navigation = () => {
               })}
               <div className="px-4 pt-2 space-y-2">
                 {isAuthenticated ? (
-                  <button
-                    onClick={handleLogout}
-                    className="w-full group relative bg-white/5 backdrop-blur-sm border-2 border-white/20 rounded-xl px-4 py-3 text-foreground font-medium transition-all duration-300 hover:bg-white/10 hover:border-white/30 hover:scale-105 btn-modern"
-                  >
-                    <span className="relative z-10 flex items-center justify-center gap-2">
-                      <LogOut className="h-4 w-4 transition-transform group-hover:rotate-12" />
-                      Logout
-                    </span>
-                  </button>
+                  <>
+                    <button
+                      onClick={() => {
+                        navigate('/profile');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full group relative bg-white/5 backdrop-blur-sm border-2 border-white/20 rounded-xl px-4 py-3 text-foreground font-medium transition-all duration-300 hover:bg-white/10 hover:border-white/30 hover:scale-105 btn-modern"
+                    >
+                      <span className="relative z-10 flex items-center justify-center gap-2">
+                        <User className="h-4 w-4" />
+                        Profile
+                      </span>
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full group relative bg-white/5 backdrop-blur-sm border-2 border-white/20 rounded-xl px-4 py-3 text-foreground font-medium transition-all duration-300 hover:bg-white/10 hover:border-white/30 hover:scale-105 btn-modern"
+                    >
+                      <span className="relative z-10 flex items-center justify-center gap-2">
+                        <LogOut className="h-4 w-4 transition-transform group-hover:rotate-12" />
+                        Logout
+                      </span>
+                    </button>
+                  </>
                 ) : (
                   <button
                     onClick={() => {
