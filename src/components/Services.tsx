@@ -1,6 +1,6 @@
-import GlassCard from "@/components/GlassCard";
+import ServiceCard3D from "@/components/ServiceCard3D";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import "@/components/GlassCard.css";
+import "@/components/ServiceCard3D.css";
 
 // Services based on PlentifulPower Consulting business plan
 const services = [
@@ -84,7 +84,7 @@ const Services = () => {
           </p>
         </div>
         
-        <div className="glass-cards-container">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {services.map((service, index) => {
             const { ref, isVisible } = useScrollAnimation();
             
@@ -92,12 +92,12 @@ const Services = () => {
               <div
                 key={index}
                 ref={ref as any}
-                className={`transition-all duration-700 ${
+                className={`transition-all duration-700 flex justify-center ${
                   isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                 }`}
                 style={{ transitionDelay: `${index * 100}ms` }}
               >
-                <GlassCard
+                <ServiceCard3D
                   text={service.text}
                   rotation={service.rotation}
                   path={service.path}
