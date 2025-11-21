@@ -152,10 +152,10 @@ const BrandingContent = () => {
           >
             <div className="backdrop-blur-xl bg-card/60 border border-accent/20 rounded-3xl p-12">
               <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">
-                Ready to Build Your Brand?
+                Ready to Build Your Brand? We are too.
               </h2>
               <p className="text-xl text-foreground/70 mb-8 font-light max-w-2xl mx-auto">
-                Let's create a brand identity and content strategy that sets you apart and drives meaningful connections.
+                Let's create a brand identity and content strategy.
               </p>
               <button
                 onClick={() => navigate('/#contact')}
