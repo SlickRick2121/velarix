@@ -7,7 +7,7 @@ const projects = [
   {
     id: 1,
     title: "ESCO Astrology Guide",
-    url: "https://escosigns.tavernappy.xyz",
+    url: "https://escosigns.velarixsolutions.nl",
     category: "Web Application",
     description: "Interactive astrology guide featuring all 12 zodiac signs with a modern glassmorphic design and gradient interface.",
     technologies: ["React", "GitHub", "Tailwind CSS"],
@@ -15,23 +15,15 @@ const projects = [
   {
     id: 2,
     title: "CryptoTrade Platform",
-    url: "https://crypto.tavernappy.xyz",
+    url: "https://crypto.velarixsolutions.nl",
     category: "Financial Technology",
     description: "Cryptocurrency trading platform with real-time data visualization and market analysis tools.",
     technologies: ["React", "GitHub", "Web3"],
   },
   {
-    id: 3,
-    title: "Modernized Gaming Software",
-    url: "https://sdropper.tavernappy.xyz",
-    category: "Gaming Platform",
-    description: "The forefront for modernized gaming software, featuring cutting-edge technology and user experience design.",
-    technologies: ["React", "GitHub", "Gaming APIs"],
-  },
-  {
     id: 4,
-    title: "Plentiful Power",
-    url: "https://main.plentifulpower.xyz",
+    title: "Velarix Store",
+    url: "https://store.velarixsolutions.nl",
     category: "Web Design",
     description: "Modern web platform with immersive visual design featuring landscape imagery and dynamic overlays.",
     technologies: ["React", "GitHub", "Tailwind CSS"],
@@ -47,7 +39,7 @@ const projects = [
   {
     id: 6,
     title: "ESCO Dashboard",
-    url: "https://esco.tavernappy.xyz",
+    url: "https://esco.velarixsolutions.nl",
     category: "Dashboard Application",
     description: "Feature-rich dashboard and configuration interface with modern UI elements and intuitive navigation.",
     technologies: ["React", "GitHub", "Dashboard UI"],
@@ -55,7 +47,7 @@ const projects = [
   {
     id: 7,
     title: "Find Terminal Interface",
-    url: "https://find.tavernappy.xyz",
+    url: "https://find.velarixsolutions.nl",
     category: "Developer Tools",
     description: "Terminal-style interface and code editor with syntax highlighting and developer-focused features.",
     technologies: ["React", "GitHub", "Code Editor"],
@@ -63,7 +55,7 @@ const projects = [
   {
     id: 8,
     title: "Lazy Application",
-    url: "https://lazy.tavernappy.xyz",
+    url: "https://lazy.velarixsolutions.nl",
     category: "Web Application",
     description: "Modern web application built with Next.js for optimal performance and server-side rendering.",
     technologies: ["Next.js", "GitHub", "SSR"],
