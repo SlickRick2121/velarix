@@ -97,19 +97,25 @@ app.get('/api/health', async (req, res) => {
 
 app.post('/api/analytics', async (req, res) => {
     const v = req.body;
-    let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+    let originalIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+    let ip = originalIp;
 
-    // Clean up IPv4 mapped into IPv6 (::ffff:127.0.0.1)
-    if (typeof ip === 'string' && ip.includes('::ffff:')) {
-        ip = ip.split(':').pop();
+    // Clean up proxy addresses
+    if (typeof ip === 'string') {
+        if (ip.includes(',')) ip = ip.split(',')[0].trim();
+        if (ip.includes('::ffff:')) ip = ip.split(':').pop();
     }
 
     const ua = req.headers['user-agent'] || '';
 
     try {
+        console.log(`[Analytics] Attempting track for IP: ${ip} | Path: ${v.path}`);
+
         // Fetch Geo Data from Backend to avoid client-side blocks
         const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
         const geo = await geoRes.json();
+
+        const timestamp = new Date().toISOString();
 
         await pool.query(
             `INSERT INTO analytics_events (
@@ -121,20 +127,23 @@ app.post('/api/analytics', async (req, res) => {
                 'success', geo.country_name || 'Unknown', geo.country_code || '??',
                 geo.region_code || '', geo.region || '', geo.city || 'Unknown', geo.postal || '',
                 geo.latitude || 0, geo.longitude || 0, geo.timezone || '',
-                geo.org || 'Unknown', geo.org || 'Unknown', geo.asn || '', ip.toString(), new Date().toISOString(),
+                geo.org || 'Unknown', geo.org || 'Unknown', geo.asn || '', ip.toString(), timestamp,
                 ua, getBrowserName(ua), getOSName(ua), v.device || 'Desktop', v.language || '',
                 v.screenResolution || '', v.referrer || '', v.path
             ]
         );
-        console.log(`[Analytics] Tracked: ${v.path} from ${geo.city || 'Unknown'}`);
+        console.log(`[Analytics] Tracked SUCCESS for ${v.path}`);
         res.status(201).json({ success: true });
     } catch (err) {
-        console.error('[Analytics] Error saving:', err);
+        console.error('[Analytics] Error saving:', err.message);
         // Fallback save with minimal data if Geo API fails
         try {
             await pool.query(`INSERT INTO analytics_events (query, path, user_agent, timestamp) VALUES ($1, $2, $3, $4)`,
                 [ip.toString(), v.path, ua, new Date().toISOString()]);
-        } catch (e) { }
+            console.log(`[Analytics] Tracked (FALLBACK) for ${v.path}`);
+        } catch (e) {
+            console.error('[Analytics] Critical fallback failure:', e.message);
+        }
         res.status(201).json({ success: true }); // Still return success to client
     }
 });
@@ -165,5 +174,5 @@ app.use((req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Server running on port ${port} | PIN Protection: Active`);
+    console.log(`Server running on port ${port} | Full-Stack Tracking Ready`);
 });

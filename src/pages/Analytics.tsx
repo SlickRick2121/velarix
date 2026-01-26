@@ -7,13 +7,14 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell
 } from 'recharts';
 import {
-    Users, Globe, MapPin, Activity, LayoutDashboard, Database, Shield, Server, RefreshCw, Smartphone, Monitor, Laptop, Info, Navigation as NavIcon
+    Users, Globe, MapPin, Activity, LayoutDashboard, Database, Shield, Server, RefreshCw, Smartphone, Monitor, Laptop, Info, Navigation as NavIcon, Lock
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import PageTransition from '@/components/PageTransition';
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { scaleLinear } from "d3-scale";
+import { toast } from "sonner";
 
 // World Map TopoJSON
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
@@ -22,21 +23,76 @@ const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F'
 
 const Analytics = () => {
     const [stats, setStats] = useState<AnalyticsStats | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isAuthorized, setIsAuthorized] = useState(false);
+    const [pin, setPin] = useState('');
 
     useEffect(() => {
-        const fetchData = async () => {
+        return () => {
+            setIsAuthorized(false);
+            setStats(null);
+        };
+    }, []);
+
+    const handleVerify = async () => {
+        if (pin === '2323') {
+            setIsLoading(true);
             try {
-                const data = await getAnalyticsStats();
+                const data = await getAnalyticsStats('2323');
                 setStats(data);
+                setIsAuthorized(true);
+                toast.success("Identity Verified. Intelligence Feed Active.");
             } catch (error) {
-                console.error("Error loading stats:", error);
+                toast.error("Failed to fetch intelligence data.");
             } finally {
                 setIsLoading(false);
             }
-        };
-        fetchData();
-    }, []);
+        } else {
+            toast.error("Invalid Administrative PIN");
+            setPin('');
+        }
+    };
+
+    if (!isAuthorized) {
+        return (
+            <div className="min-h-screen bg-black flex items-center justify-center p-4">
+                <Navigation />
+                <div className="w-full max-w-md p-8 rounded-3xl bg-secondary/10 border border-accent/20 backdrop-blur-3xl space-y-8 text-center">
+                    <div className="mx-auto w-20 h-20 rounded-2xl bg-accent/20 flex items-center justify-center border border-accent/30 shadow-2xl shadow-accent/20">
+                        <Lock className="w-10 h-10 text-accent animate-pulse" />
+                    </div>
+
+                    <div className="space-y-2">
+                        <h1 className="text-3xl font-bold tracking-tighter text-foreground">Security Challenge</h1>
+                        <p className="text-muted-foreground text-sm uppercase tracking-widest font-mono">Restricted Admin Environment</p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="relative">
+                            <input
+                                type="password"
+                                value={pin}
+                                onChange={(e) => setPin(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleVerify()}
+                                placeholder="ENTER 4-DIGIT PIN"
+                                className="w-full bg-black/60 border border-accent/30 rounded-2xl px-4 py-6 text-foreground placeholder-foreground/20 focus:outline-none focus:ring-2 focus:ring-accent/50 text-center tracking-[1em] text-3xl font-bold transition-all"
+                                maxLength={4}
+                                autoFocus
+                            />
+                        </div>
+
+                        <button
+                            onClick={handleVerify}
+                            disabled={isLoading}
+                            className="w-full py-5 bg-accent text-black font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all active:scale-95 disabled:opacity-50"
+                        >
+                            {isLoading ? 'Decrypting Protocols...' : 'Verify Authority'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     if (isLoading || !stats) {
         return (
@@ -67,10 +123,10 @@ const Analytics = () => {
                         </div>
                         <div className="flex gap-2">
                             <div className="bg-secondary/50 px-4 py-2 rounded-lg border border-border text-xs font-mono">
-                                <span className="text-accent">VERSION:</span> 3.1.0
+                                <span className="text-accent">VERSION:</span> 3.2.0
                             </div>
                             <div className="bg-secondary/50 px-4 py-2 rounded-lg border border-border text-xs font-mono text-emerald-500">
-                                <span className="text-accent underline">ENCRYPTED</span>
+                                <span className="text-accent underline">TERMINAL:</span> VERIFIED
                             </div>
                         </div>
                     </div>
@@ -309,25 +365,6 @@ const Analytics = () => {
                             </div>
                         </CardContent>
                     </Card>
-
-                    {/* Infrastructure Resilience */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <FeatureInfoCard
-                            icon={<Shield className="w-5 h-5 text-emerald-500" />}
-                            title="X-Admin Authentication"
-                            description="All data requests are verified via a secure header-based PIN protocol, effectively izolating the dashboard from public probes."
-                        />
-                        <FeatureInfoCard
-                            icon={<Server className="w-5 h-5 text-accent" />}
-                            title="PostgreSQL Core"
-                            description="Active monitoring on Railway infrastructure for real-time traffic persistence and relational metadata tracking."
-                        />
-                        <FeatureInfoCard
-                            icon={<NavIcon className="w-5 h-5 text-accent" />}
-                            title="Global Surveillance"
-                            description="Live HEATMAP visualization enabled by real-time geolocation resolution from across 240+ countries."
-                        />
-                    </div>
                 </main>
             </PageTransition>
             <Footer />

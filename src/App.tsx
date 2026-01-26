@@ -48,11 +48,7 @@ const App = () => {
                 <Route path="/login" element={<Login />} />
                 <Route
                   path="/analytics"
-                  element={
-                    <AuthGuard>
-                      <Analytics />
-                    </AuthGuard>
-                  }
+                  element={<Analytics />}
                 />
                 <Route path="/website-ecommerce" element={<WebsiteEcommerce />} />
                 <Route path="/branding-content" element={<BrandingContent />} />
