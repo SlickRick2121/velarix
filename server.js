@@ -165,6 +165,31 @@ app.get('/api/analytics/stats', async (req, res) => {
     }
 });
 
+app.delete('/api/analytics', async (req, res) => {
+    const adminPin = req.headers['x-admin-pin'];
+    if (String(adminPin) !== '2323') return res.status(401).json({ error: 'Unauthorized' });
+
+    try {
+        await pool.query('DELETE FROM analytics_events');
+        console.log('[Analytics] Database cleared by Admin');
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/analytics/:id', async (req, res) => {
+    const adminPin = req.headers['x-admin-pin'];
+    if (String(adminPin) !== '2323') return res.status(401).json({ error: 'Unauthorized' });
+
+    try {
+        await pool.query('DELETE FROM analytics_events WHERE id = $1', [req.params.id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Serve static files
 app.use(express.static(path.join(__dirname, 'dist')));
 

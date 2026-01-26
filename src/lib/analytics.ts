@@ -184,6 +184,20 @@ export const getAnalyticsStats = async (pin?: string): Promise<AnalyticsStats> =
   }
 };
 
+export const deleteLog = async (id: number, pin: string) => {
+  return await fetch(`${API_BASE}/api/analytics/${id}`, {
+    method: 'DELETE',
+    headers: { 'x-admin-pin': pin }
+  });
+};
+
+export const clearAllLogs = async (pin: string) => {
+  return await fetch(`${API_BASE}/api/analytics`, {
+    method: 'DELETE',
+    headers: { 'x-admin-pin': pin }
+  });
+};
+
 export const getFlagEmoji = (countryCode: string) => {
   if (!countryCode || countryCode === '??') return '🏳️';
   const codePoints = countryCode
