@@ -41,32 +41,6 @@ export interface AnalyticsStats {
 
 const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:3001' : '';
 
-const getBrowserName = (ua: string) => {
-  if (ua.includes('Firefox')) return 'Firefox';
-  if (ua.includes('SamsungBrowser')) return 'Samsung Browser';
-  if (ua.includes('Opera') || ua.includes('OPR')) return 'Opera';
-  if (ua.includes('Trident')) return 'Internet Explorer';
-  if (ua.includes('Edge')) return 'Edge';
-  if (ua.includes('Chrome')) return 'Chrome';
-  if (ua.includes('Safari')) return 'Safari';
-  return 'Unknown';
-};
-
-const getOSName = (ua: string) => {
-  if (ua.includes('Windows')) return 'Windows';
-  if (ua.includes('Android')) return 'Android';
-  if (ua.includes('iPhone') || ua.includes('iPad')) return 'iOS';
-  if (ua.includes('Macintosh')) return 'macOS';
-  if (ua.includes('Linux')) return 'Linux';
-  return 'Unknown';
-};
-
-const getDeviceType = (ua: string) => {
-  if (/tablet|ipad|playbook|silk/i.test(ua)) return 'Tablet';
-  if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) return 'Mobile';
-  return 'Desktop';
-};
-
 export const trackView = async () => {
   try {
     const lastTracked = sessionStorage.getItem('last_tracked_view');
@@ -74,38 +48,15 @@ export const trackView = async () => {
 
     if (lastTracked === currentPath) return;
 
-    // Use HTTPS provider to avoid Mixed Content errors on Railway
-    const response = await fetch('https://ipapi.co/json/');
-    const data = await response.json();
-
-    const ua = navigator.userAgent;
     const visitor = {
-      status: 'success',
-      country: data.country_name,
-      countryCode: data.country_code,
-      region: data.region_code,
-      regionName: data.region,
-      city: data.city,
-      zip: data.postal,
-      lat: data.latitude,
-      lon: data.longitude,
-      timezone: data.timezone,
-      isp: data.org,
-      org: data.org,
-      as: data.asn,
-      query: data.ip,
-      timestamp: new Date().toISOString(),
-      userAgent: ua,
-      browser: getBrowserName(ua),
-      os: getOSName(ua),
-      device: getDeviceType(ua),
+      path: currentPath,
+      referrer: document.referrer || 'Direct',
       language: navigator.language,
       screenResolution: `${window.screen.width}x${window.screen.height}`,
-      referrer: document.referrer || 'Direct',
-      path: currentPath,
+      device: /Mobi|Android/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop'
     };
 
-    // Store in Railway Postgres via our server
+    // Send to our backend - backend will handle IP and Geo detection
     await fetch(`${API_BASE}/api/analytics`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -113,8 +64,9 @@ export const trackView = async () => {
     });
 
     sessionStorage.setItem('last_tracked_view', currentPath);
+    console.log('[Nexus] View logged');
   } catch (error) {
-    console.warn('Analytics tracking failed:', error);
+    // Silent fail for tracking
   }
 };
 
@@ -150,7 +102,7 @@ export const getAnalyticsStats = async (pin?: string): Promise<AnalyticsStats> =
 
     const locationCounts: Record<string, number> = {};
     data.forEach(v => {
-      const loc = `${v.city}, ${v.country}`;
+      const loc = `${v.city || 'Unknown'}, ${v.country || 'Unknown'}`;
       locationCounts[loc] = (locationCounts[loc] || 0) + 1;
     });
     const topLocations = Object.entries(locationCounts)
@@ -158,7 +110,6 @@ export const getAnalyticsStats = async (pin?: string): Promise<AnalyticsStats> =
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 
-    // Country Stats (for Heatmap)
     const countryCounts: Record<string, number> = {};
     data.forEach(v => {
       if (v.countryCode) {
@@ -180,7 +131,7 @@ export const getAnalyticsStats = async (pin?: string): Promise<AnalyticsStats> =
 
     const browserCounts: Record<string, number> = {};
     data.forEach(v => {
-      browserCounts[v.browser] = (browserCounts[v.browser] || 0) + 1;
+      if (v.browser) browserCounts[v.browser] = (browserCounts[v.browser] || 0) + 1;
     });
     const browserStats = Object.entries(browserCounts)
       .map(([name, count]) => ({ name, count }))
@@ -188,7 +139,7 @@ export const getAnalyticsStats = async (pin?: string): Promise<AnalyticsStats> =
 
     const osCounts: Record<string, number> = {};
     data.forEach(v => {
-      osCounts[v.os] = (osCounts[v.os] || 0) + 1;
+      if (v.os) osCounts[v.os] = (osCounts[v.os] || 0) + 1;
     });
     const osStats = Object.entries(osCounts)
       .map(([name, count]) => ({ name, count }))
@@ -196,7 +147,7 @@ export const getAnalyticsStats = async (pin?: string): Promise<AnalyticsStats> =
 
     const deviceCounts: Record<string, number> = {};
     data.forEach(v => {
-      deviceCounts[v.device] = (deviceCounts[v.device] || 0) + 1;
+      if (v.device) deviceCounts[v.device] = (deviceCounts[v.device] || 0) + 1;
     });
     const deviceStats = Object.entries(deviceCounts)
       .map(([name, count]) => ({ name, count }))
@@ -234,7 +185,7 @@ export const getAnalyticsStats = async (pin?: string): Promise<AnalyticsStats> =
 };
 
 export const getFlagEmoji = (countryCode: string) => {
-  if (!countryCode) return '🏳️';
+  if (!countryCode || countryCode === '??') return '🏳️';
   const codePoints = countryCode
     .toUpperCase()
     .split('')

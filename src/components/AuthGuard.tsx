@@ -49,7 +49,8 @@ export default function AuthGuard({ children }: AuthGuardProps) {
 
   // Admin protection for analytics
   if (location.pathname === '/analytics') {
-    const isAuthorized = user?.email && ADMIN_EMAILS.includes(user.email);
+    const isAdminPinUser = user?.uid === 'admin-railway';
+    const isAuthorized = isAdminPinUser || (user?.email && ADMIN_EMAILS.includes(user.email));
 
     if (!isAuthorized) {
       return (
