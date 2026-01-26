@@ -9,7 +9,7 @@ const projects = [
     id: 1,
     title: "ESCO Astrology Guide",
     url: "https://escosigns.velarixsolutions.nl",
-    image: "/projects/astrology.png",
+    image: "https://s0.wp.com/mshots/v1/https://escosigns.velarixsolutions.nl?w=800",
     category: "Metaphysical App",
     description: "Interactive astrology guide featuring all 12 zodiac signs with a modern glassmorphic design and gradient interface.",
     technologies: ["React", "TypeScript", "Tailwind CSS"],
@@ -19,7 +19,7 @@ const projects = [
     id: 2,
     title: "CryptoTrade Platform",
     url: "https://crypto.velarixsolutions.nl",
-    image: "/projects/crypto.png",
+    image: "https://s0.wp.com/mshots/v1/https://crypto.velarixsolutions.nl?w=800",
     category: "FinTech",
     description: "Cryptocurrency trading platform with real-time data visualization and market analysis tools.",
     technologies: ["React", "Web3", "Recharts"],
@@ -28,8 +28,8 @@ const projects = [
   {
     id: 4,
     title: "Velarix Store",
-    url: "https://store.velarixsolutions.nl",
-    image: "/projects/ecommerce.png",
+    url: "https://esco.veroe.fun",
+    image: "https://s0.wp.com/mshots/v1/https://esco.veroe.fun?w=800",
     category: "E-Commerce",
     description: "Modern web platform with immersive visual design featuring landscape imagery and dynamic overlays.",
     technologies: ["React", "Shopify API", "Tailwind"],
@@ -38,7 +38,8 @@ const projects = [
   {
     id: 5,
     title: "Velarix Solutions",
-    url: "https://velarixsolutions.nl",
+    url: "https://veroe.space",
+    image: "https://s0.wp.com/mshots/v1/https://veroe.space?w=800",
     category: "Agency Site",
     description: "Professional business website with clean, modern design and responsive layout for optimal user experience.",
     technologies: ["React", "Framer Motion", "Vite"],
@@ -47,7 +48,8 @@ const projects = [
   {
     id: 6,
     title: "ESCO Dashboard",
-    url: "https://esco.velarixsolutions.nl",
+    url: "https://farkle.velarixsolutions.nl",
+    image: "https://s0.wp.com/mshots/v1/https://farkle.velarixsolutions.nl?w=800",
     category: "SaaS Dashboard",
     description: "Feature-rich dashboard and configuration interface with modern UI elements and intuitive navigation.",
     technologies: ["React", "shadcn/ui", "Lucide"],
@@ -56,7 +58,8 @@ const projects = [
   {
     id: 7,
     title: "Find Terminal Interface",
-    url: "https://find.velarixsolutions.nl",
+    url: "https://spell.velarixsolutions.nl",
+    image: "https://s0.wp.com/mshots/v1/https://spell.velarixsolutions.nl?w=800",
     category: "Developer Tool",
     description: "Terminal-style interface and code editor with syntax highlighting and developer-focused features.",
     technologies: ["React", "Monaco Editor", "SystemUI"],
@@ -103,19 +106,17 @@ const Portfolio = () => {
                 onClick={() => project.url && window.open(project.url, '_blank', 'noopener,noreferrer')}
               >
                 {/* Image Section */}
-                <div className="relative aspect-video overflow-hidden">
+                <div className="relative aspect-video overflow-hidden bg-muted/20">
                   <div className={`absolute inset-0 bg-gradient-to-br ${project.color} mix-blend-overlay z-10`} />
-                  {project.image ? (
-                    <img
-                      src={project.image}
-                      alt={project.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-secondary flex items-center justify-center">
-                      <Globe className="w-12 h-12 text-muted-foreground/20" />
-                    </div>
-                  )}
+                  <img
+                    src={project.image}
+                    alt={project.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    loading="lazy"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = `https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800`;
+                    }}
+                  />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-20">
                     <div className="bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-full">
                       <ExternalLink className="w-6 h-6 text-white" />
