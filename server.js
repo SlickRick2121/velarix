@@ -66,8 +66,19 @@ const initDb = async () => {
 initDb();
 
 // API Endpoints
+app.get('/api/health', async (req, res) => {
+    try {
+        await pool.query('SELECT 1');
+        res.json({ status: 'ok', database: 'connected' });
+    } catch (err) {
+        res.status(500).json({ status: 'error', database: err.message });
+    }
+});
+
 app.post('/api/analytics', async (req, res) => {
     const v = req.body;
+    console.log(`[Analytics] View tracked for path: ${v.path} from IP: ${v.query}`);
+
     try {
         await pool.query(
             `INSERT INTO analytics_events (
@@ -83,7 +94,7 @@ app.post('/api/analytics', async (req, res) => {
         );
         res.status(201).json({ success: true });
     } catch (err) {
-        console.error('Error saving analytics:', err);
+        console.error('[Analytics] Error saving to DB:', err);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });

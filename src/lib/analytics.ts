@@ -73,33 +73,45 @@ export const trackView = async () => {
 
     if (lastTracked === currentPath) return;
 
-    const response = await fetch('http://ip-api.com/json/?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,query');
+    // Use HTTPS provider to avoid Mixed Content errors on Railway
+    const response = await fetch('https://ipapi.co/json/');
     const data = await response.json();
 
-    if (data.status === 'success') {
-      const ua = navigator.userAgent;
-      const visitor = {
-        ...data,
-        timestamp: new Date().toISOString(),
-        userAgent: ua,
-        browser: getBrowserName(ua),
-        os: getOSName(ua),
-        device: getDeviceType(ua),
-        language: navigator.language,
-        screenResolution: `${window.screen.width}x${window.screen.height}`,
-        referrer: document.referrer || 'Direct',
-        path: currentPath,
-      };
+    const ua = navigator.userAgent;
+    const visitor = {
+      status: 'success',
+      country: data.country_name,
+      countryCode: data.country_code,
+      region: data.region_code,
+      regionName: data.region,
+      city: data.city,
+      zip: data.postal,
+      lat: data.latitude,
+      lon: data.longitude,
+      timezone: data.timezone,
+      isp: data.org,
+      org: data.org,
+      as: data.asn,
+      query: data.ip,
+      timestamp: new Date().toISOString(),
+      userAgent: ua,
+      browser: getBrowserName(ua),
+      os: getOSName(ua),
+      device: getDeviceType(ua),
+      language: navigator.language,
+      screenResolution: `${window.screen.width}x${window.screen.height}`,
+      referrer: document.referrer || 'Direct',
+      path: currentPath,
+    };
 
-      // Store in Railway Postgres via our server
-      await fetch(`${API_BASE}/api/analytics`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(visitor)
-      });
+    // Store in Railway Postgres via our server
+    await fetch(`${API_BASE}/api/analytics`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(visitor)
+    });
 
-      sessionStorage.setItem('last_tracked_view', currentPath);
-    }
+    sessionStorage.setItem('last_tracked_view', currentPath);
   } catch (error) {
     console.warn('Analytics tracking failed:', error);
   }
@@ -110,8 +122,6 @@ export const getAnalyticsStats = async (): Promise<AnalyticsStats> => {
     const response = await fetch(`${API_BASE}/api/analytics/stats`);
     const rawData = await response.json();
 
-    // Convert DB keys back to camelCase if necessary, but server.js saved them with underscore
-    // or we can just map them here.
     const data: VisitorData[] = rawData.map((v: any) => ({
       ...v,
       countryCode: v.country_code,
