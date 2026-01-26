@@ -16,8 +16,8 @@ import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { scaleLinear } from "d3-scale";
 import { toast } from "sonner";
 
-// High-quality TopoJSON with ISO-2 codes in properties
-const geoUrl = "https://raw.githubusercontent.com/deldersveld/topojson/master/world-countries.json";
+// Use the exact TopoJSON URL used in react-simple-maps official examples for maximum reliability
+const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -79,10 +79,10 @@ const Analytics = () => {
         if (!stats) return [];
         return stats.recentViews.filter(view => {
             const matchesSearch =
-                view.query.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                view.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                view.country?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                view.isp?.toLowerCase().includes(searchQuery.toLowerCase());
+                (view.query?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+                (view.city?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+                (view.country?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+                (view.isp?.toLowerCase() || "").includes(searchQuery.toLowerCase());
 
             const matchesPath = filterPath === 'all' || view.path === filterPath;
 
@@ -172,7 +172,7 @@ const Analytics = () => {
                         <div className="flex flex-col items-end gap-2">
                             <div className="flex gap-2">
                                 <div className="bg-secondary/50 px-4 py-2 rounded-lg border border-border text-xs font-mono">
-                                    <span className="text-accent">VERSION:</span> 3.5.0
+                                    <span className="text-accent">VERSION:</span> 3.6.0
                                 </div>
                                 <div className="bg-secondary/50 px-4 py-2 rounded-lg border border-border text-xs font-mono text-emerald-500">
                                     <span className="text-accent underline">TERMINAL:</span> MASTER
@@ -204,32 +204,39 @@ const Analytics = () => {
                             </CardTitle>
                             <CardDescription>Visualizing global infrastructure utilization and traffic hotspots.</CardDescription>
                         </CardHeader>
-                        <CardContent className="p-0 relative aspect-[21/9] min-h-[450px] bg-black/40">
-                            <ComposableMap projectionConfig={{ scale: 140 }}>
-                                <Geographies geography={geoUrl}>
-                                    {({ geographies }) =>
-                                        geographies.map((geo) => {
-                                            // Matching strategy for ISO-2
-                                            const iso2 = geo.properties.ISO_A2 || geo.properties.iso_a2 || geo.id;
-                                            const countryData = stats.countryStats.find((s) => s.id === iso2);
-                                            return (
-                                                <Geography
-                                                    key={geo.rsmKey}
-                                                    geography={geo}
-                                                    fill={countryData ? colorScale(countryData.count) : "#1a1a1a"}
-                                                    stroke="#333"
-                                                    strokeWidth={0.5}
-                                                    style={{
-                                                        default: { outline: "none" },
-                                                        hover: { fill: "#FE4A49", outline: "none", cursor: "crosshair" },
-                                                        pressed: { outline: "none" },
-                                                    }}
-                                                />
-                                            );
-                                        })
-                                    }
-                                </Geographies>
-                            </ComposableMap>
+                        <CardContent className="p-0 relative bg-black/40 h-[400px]">
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <ComposableMap projectionConfig={{ scale: 120 }}>
+                                    <Geographies geography={geoUrl}>
+                                        {({ geographies }) =>
+                                            geographies.map((geo) => {
+                                                const isoCode = geo.properties.ISO_A2 || geo.properties.iso_a2;
+                                                // world-atlas uses numerical IDs too, let's just match on any property
+                                                const countryData = stats.countryStats.find(s =>
+                                                    s.id === isoCode ||
+                                                    s.id === geo.id ||
+                                                    s.id === geo.properties.name
+                                                );
+
+                                                return (
+                                                    <Geography
+                                                        key={geo.rsmKey}
+                                                        geography={geo}
+                                                        fill={countryData ? colorScale(countryData.count) : "#1a1a1a"}
+                                                        stroke="#333"
+                                                        strokeWidth={0.5}
+                                                        style={{
+                                                            default: { outline: "none" },
+                                                            hover: { fill: "#FE4A49", outline: "none", cursor: "pointer" },
+                                                            pressed: { outline: "none" },
+                                                        }}
+                                                    />
+                                                );
+                                            })
+                                        }
+                                    </Geographies>
+                                </ComposableMap>
+                            </div>
 
                             <div className="absolute bottom-6 left-6 p-4 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md">
                                 <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-3 font-bold">Traffic Density</p>
@@ -293,7 +300,7 @@ const Analytics = () => {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {filteredViews.map((view: any, i) => (
+                                        {filteredViews.map((view, i) => (
                                             <TableRow key={view.id || i} className="hover:bg-accent/5 transition-colors border-b border-border/10 group">
                                                 <TableCell className="font-mono text-[10px] text-muted-foreground whitespace-nowrap">
                                                     {new Date(view.timestamp).toLocaleString()}
@@ -301,7 +308,7 @@ const Analytics = () => {
                                                 <TableCell>
                                                     <div className="flex flex-col gap-1">
                                                         <div className="flex items-center gap-2 font-bold text-xs tracking-tight">
-                                                            <span className="text-lg leading-none">{getFlagEmoji(view.country_code)}</span>
+                                                            <span className="text-lg leading-none">{getFlagEmoji(view.countryCode)}</span>
                                                             {view.city}, {view.country}
                                                         </div>
                                                         <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">
