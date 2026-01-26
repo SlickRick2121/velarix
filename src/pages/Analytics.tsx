@@ -20,9 +20,17 @@ const Analytics = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const data = getAnalyticsStats();
-        setStats(data);
-        setIsLoading(false);
+        const fetchData = async () => {
+            try {
+                const data = await getAnalyticsStats();
+                setStats(data);
+            } catch (error) {
+                console.error("Error loading stats:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchData();
     }, []);
 
     if (isLoading || !stats) {

@@ -1,4 +1,7 @@
 
+import { db } from './firebase';
+import { collection, addDoc, getDocs, query, orderBy } from 'firebase/firestore';
+
 export interface VisitorData {
   status: string;
   country: string;
@@ -38,7 +41,7 @@ export interface AnalyticsStats {
   deviceStats: { name: string; count: number }[];
 }
 
-const STORAGE_KEY = 'nexus_analytics_data';
+const ANALYTICS_COLLECTION = 'analytics_events';
 
 const getBrowserName = (ua: string) => {
   if (ua.includes('Firefox')) return 'Firefox';
@@ -92,9 +95,8 @@ export const trackView = async () => {
         path: currentPath,
       };
 
-      const existingData = getStoredData();
-      existingData.push(visitor);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(existingData));
+      // Store in Firestore
+      await addDoc(collection(db, ANALYTICS_COLLECTION), visitor);
       sessionStorage.setItem('last_tracked_view', currentPath);
     }
   } catch (error) {
@@ -102,81 +104,99 @@ export const trackView = async () => {
   }
 };
 
-const getStoredData = (): VisitorData[] => {
-  const data = localStorage.getItem(STORAGE_KEY);
-  return data ? JSON.parse(data) : [];
-};
+export const getAnalyticsStats = async (): Promise<AnalyticsStats> => {
+  try {
+    const q = query(collection(db, ANALYTICS_COLLECTION), orderBy('timestamp', 'desc'));
+    const querySnapshot = await getDocs(q);
+    const data: VisitorData[] = [];
 
-export const getAnalyticsStats = (): AnalyticsStats => {
-  const data = getStoredData();
+    querySnapshot.forEach((doc) => {
+      data.push(doc.data() as VisitorData);
+    });
 
-  const uniqueIPs = new Set(data.map(v => v.query)).size;
-  const countries = new Set(data.map(v => v.country)).size;
-  const cities = new Set(data.map(v => v.city)).size;
+    const uniqueIPs = new Set(data.map(v => v.query)).size;
+    const countries = new Set(data.map(v => v.country)).size;
+    const cities = new Set(data.map(v => v.city)).size;
 
-  // Recent views (last 50)
-  const recentViews = [...data].reverse().slice(0, 50);
+    // Recent views (last 100)
+    const recentViews = data.slice(0, 100);
 
-  // Top Locations
-  const locationCounts: Record<string, number> = {};
-  data.forEach(v => {
-    const loc = `${v.city}, ${v.country}`;
-    locationCounts[loc] = (locationCounts[loc] || 0) + 1;
-  });
-  const topLocations = Object.entries(locationCounts)
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5);
+    // Top Locations
+    const locationCounts: Record<string, number> = {};
+    data.forEach(v => {
+      const loc = `${v.city}, ${v.country}`;
+      locationCounts[loc] = (locationCounts[loc] || 0) + 1;
+    });
+    const topLocations = Object.entries(locationCounts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
 
-  // Views by Date
-  const viewsByDateMap: Record<string, number> = {};
-  data.forEach(v => {
-    const date = new Date(v.timestamp).toLocaleDateString();
-    viewsByDateMap[date] = (viewsByDateMap[date] || 0) + 1;
-  });
-  const viewsByDate = Object.entries(viewsByDateMap)
-    .map(([date, count]) => ({ date, count }))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    // Views by Date
+    const viewsByDateMap: Record<string, number> = {};
+    data.forEach(v => {
+      const date = new Date(v.timestamp).toLocaleDateString();
+      viewsByDateMap[date] = (viewsByDateMap[date] || 0) + 1;
+    });
+    const viewsByDate = Object.entries(viewsByDateMap)
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(-14);
 
-  // Browser Stats
-  const browserCounts: Record<string, number> = {};
-  data.forEach(v => {
-    browserCounts[v.browser] = (browserCounts[v.browser] || 0) + 1;
-  });
-  const browserStats = Object.entries(browserCounts)
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count);
+    // Browser Stats
+    const browserCounts: Record<string, number> = {};
+    data.forEach(v => {
+      browserCounts[v.browser] = (browserCounts[v.browser] || 0) + 1;
+    });
+    const browserStats = Object.entries(browserCounts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
 
-  // OS Stats
-  const osCounts: Record<string, number> = {};
-  data.forEach(v => {
-    osCounts[v.os] = (osCounts[v.os] || 0) + 1;
-  });
-  const osStats = Object.entries(osCounts)
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count);
+    // OS Stats
+    const osCounts: Record<string, number> = {};
+    data.forEach(v => {
+      osCounts[v.os] = (osCounts[v.os] || 0) + 1;
+    });
+    const osStats = Object.entries(osCounts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
 
-  // Device Stats
-  const deviceCounts: Record<string, number> = {};
-  data.forEach(v => {
-    deviceCounts[v.device] = (deviceCounts[v.device] || 0) + 1;
-  });
-  const deviceStats = Object.entries(deviceCounts)
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count);
+    // Device Stats
+    const deviceCounts: Record<string, number> = {};
+    data.forEach(v => {
+      deviceCounts[v.device] = (deviceCounts[v.device] || 0) + 1;
+    });
+    const deviceStats = Object.entries(deviceCounts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
 
-  return {
-    totalViews: data.length,
-    uniqueIPs,
-    countries,
-    cities,
-    recentViews,
-    topLocations,
-    viewsByDate,
-    browserStats,
-    osStats,
-    deviceStats
-  };
+    return {
+      totalViews: data.length,
+      uniqueIPs,
+      countries,
+      cities,
+      recentViews,
+      topLocations,
+      viewsByDate,
+      browserStats,
+      osStats,
+      deviceStats
+    };
+  } catch (error) {
+    console.error('Failed to fetch analytics:', error);
+    return {
+      totalViews: 0,
+      uniqueIPs: 0,
+      countries: 0,
+      cities: 0,
+      recentViews: [],
+      topLocations: [],
+      viewsByDate: [],
+      browserStats: [],
+      osStats: [],
+      deviceStats: []
+    };
+  }
 };
 
 export const getFlagEmoji = (countryCode: string) => {
