@@ -52,7 +52,7 @@ const BrandingContent = () => {
         title="Branding & Content Strategy | Velarix Digital Studio"
         description="Complete brand identity design, content strategy, and visual asset creation. Logo design, brand guidelines, and content planning for small businesses."
         keywords="branding services, brand identity design, logo design, content strategy, brand guidelines, visual identity, brand voice, content marketing, Netherlands branding, US brand design, small business branding"
-        canonical="https://velarix.digital/branding-content"
+        canonical="https://velarixsolutions.nl/branding-content"
       />
       <Navigation />
       <ServiceHero

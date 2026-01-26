@@ -11,7 +11,7 @@ interface SEOProps {
 
 const SEO = ({ title, description, keywords, canonical, ogImage }: SEOProps) => {
   const location = useLocation();
-  const baseUrl = 'https://velarix.digital';
+  const baseUrl = 'https://velarixsolutions.nl';
   const fullUrl = `${baseUrl}${location.pathname}`;
   const canonicalUrl = canonical || fullUrl;
   const imageUrl = ogImage || `${baseUrl}/og-image.svg`;

@@ -55,7 +55,7 @@ const Blog = () => {
         title="Blog & Insights | Velarix Digital Studio"
         description="Thoughts on design, technology, and digital strategy. Insights on web development, branding, automation, and digital marketing for small businesses."
         keywords="web design blog, digital strategy insights, technology blog, web development tips, branding advice, automation guides, small business digital marketing, Netherlands web design blog, US digital strategy"
-        canonical="https://velarix.digital/blog"
+        canonical="https://velarixsolutions.nl/blog"
       />
       <Navigation />
       

@@ -66,7 +66,7 @@ export default function Login() {
     if (adminPin === '2323') {
       const mockUser: any = {
         uid: 'admin-railway',
-        email: 'admin@velarix.digital',
+        email: 'admin@velarixsolutions.nl',
         displayName: 'Railway Admin',
       };
 

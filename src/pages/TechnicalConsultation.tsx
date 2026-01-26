@@ -52,7 +52,7 @@ const TechnicalConsultation = () => {
         title="Technical Consultation Services | Velarix Digital Studio"
         description="Expert guidance on technology decisions, digital strategy, and implementation planning. Technical consultation for small businesses and startups."
         keywords="technical consultation, technology consulting, digital strategy, tech stack selection, architecture consulting, code review, technical advisory, Netherlands tech consulting, US technical consultation, freelance tech consultant"
-        canonical="https://velarix.digital/technical-consultation"
+        canonical="https://velarixsolutions.nl/technical-consultation"
       />
       <Navigation />
       <ServiceHero

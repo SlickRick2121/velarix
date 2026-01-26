@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (persistedAdmin === 'true') {
       setUser({
         uid: 'admin-railway',
-        email: 'admin@velarix.digital',
+        email: 'admin@velarixsolutions.nl',
         displayName: 'Railway Admin',
       } as any);
       setIsAuthenticated(true);

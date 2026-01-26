@@ -52,7 +52,7 @@ const WebOptimization = () => {
         title="Web Optimization & Maintenance | Velarix Digital Studio"
         description="Website speed optimization, SEO enhancement, security updates, and ongoing maintenance. Keep your digital presence running smoothly with professional optimization services."
         keywords="web optimization, SEO services, website speed optimization, website maintenance, performance optimization, security updates, technical SEO, Netherlands web optimization, US web maintenance, small business SEO"
-        canonical="https://velarix.digital/web-optimization"
+        canonical="https://velarixsolutions.nl/web-optimization"
       />
       <Navigation />
       <ServiceHero

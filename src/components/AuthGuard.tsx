@@ -14,7 +14,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   const [isChecking, setIsChecking] = useState(true);
 
   // Authorized Admin Emails
-  const ADMIN_EMAILS = ['admin@velarix.digital', 'voee1@protonmail.com', 'voee178@gmail.com'];
+  const ADMIN_EMAILS = ['admin@velarixsolutions.nl', 'voee1@protonmail.com', 'voee178@gmail.com'];
 
   useEffect(() => {
     // Small delay to allow auth context to initialize

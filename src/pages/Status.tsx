@@ -179,7 +179,7 @@ export default function Status() {
                         If you're experiencing issues not listed here, please contact our support team.
                     </p>
                     <a
-                        href="mailto:admin@velarix.digital"
+                        href="mailto:admin@velarixsolutions.nl"
                         className="inline-flex items-center gap-2 px-8 py-4 bg-accent text-black rounded-xl font-bold hover:scale-105 transition-transform"
                     >
                         Contact Velarix Support

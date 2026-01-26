@@ -133,7 +133,7 @@ const Services = () => {
         title="Services | Velarix Digital Studio"
         description="Explore our comprehensive digital services: Website & eCommerce development, Branding & Content strategy, Technical Automation, Web Optimization, and Technical Consultation."
         keywords="digital services, web development services, eCommerce solutions, branding services, technical automation, web optimization, technical consultation, digital studio services"
-        canonical="https://velarix.digital/services"
+        canonical="https://velarixsolutions.nl/services"
       />
       <div ref={vantaRef} className="fixed inset-0 -z-10" />
       <div className="fixed inset-0 -z-10 bg-gradient-to-b from-background/70 via-background/60 to-background/70 pointer-events-none" />

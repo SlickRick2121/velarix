@@ -9,7 +9,7 @@ const TechnicalAutomation = () => {
         title="Technical Automation Services | Velarix Digital Studio"
         description="API integrations, hosting solutions, domain setup, and workflow automation. Streamline your digital operations with technical automation services."
         keywords="API integration, technical automation, hosting solutions, domain setup, workflow automation, API development, system integration, Netherlands automation, US technical services, small business automation"
-        canonical="https://velarix.digital/technical-automation"
+        canonical="https://velarixsolutions.nl/technical-automation"
       />
       <Navigation />
       <div className="min-h-screen pt-20 pb-24">
