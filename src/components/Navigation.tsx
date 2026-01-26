@@ -54,6 +54,7 @@ const Navigation = () => {
     { label: 'Portfolio', id: 'portfolio' },
     ...(isAuthenticated ? [{ label: 'Analytics', path: '/analytics' }] : []),
     { label: 'Blog', path: '/blog' },
+    { label: 'Status', path: '/status' },
     { label: 'Contact', id: 'contact' }
   ];
 

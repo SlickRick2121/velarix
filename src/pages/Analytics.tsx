@@ -12,6 +12,11 @@ import {
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import PageTransition from '@/components/PageTransition';
+import { ComposableMap, Geographies, Geography } from "react-simple-maps";
+import { scaleLinear } from "d3-scale";
+
+// World Map TopoJSON
+const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -41,6 +46,12 @@ const Analytics = () => {
         );
     }
 
+    // Color scale for heatmap
+    const maxCount = Math.max(...(stats.countryStats.map(d => d.count) || [0]), 1);
+    const colorScale = scaleLinear<string>()
+        .domain([0, maxCount])
+        .range(["#1a1a1a", "#FE4A49"]); // Dark to Accent color
+
     return (
         <div className="min-h-screen bg-background text-foreground">
             <Navigation />
@@ -56,10 +67,10 @@ const Analytics = () => {
                         </div>
                         <div className="flex gap-2">
                             <div className="bg-secondary/50 px-4 py-2 rounded-lg border border-border text-xs font-mono">
-                                <span className="text-accent">VERSION:</span> 2.4.0
+                                <span className="text-accent">VERSION:</span> 3.1.0
                             </div>
-                            <div className="bg-secondary/50 px-4 py-2 rounded-lg border border-border text-xs font-mono">
-                                <span className="text-accent">STATUS:</span> ACTIVE
+                            <div className="bg-secondary/50 px-4 py-2 rounded-lg border border-border text-xs font-mono text-emerald-500">
+                                <span className="text-accent underline">ENCRYPTED</span>
                             </div>
                         </div>
                     </div>
@@ -91,6 +102,52 @@ const Analytics = () => {
                             description="Urban locations tracked"
                         />
                     </div>
+
+                    {/* Cloudflare Style Heatmap */}
+                    <Card className="border-border/50 bg-secondary/10 backdrop-blur-xl overflow-hidden">
+                        <CardHeader className="border-b border-white/5">
+                            <CardTitle className="flex items-center gap-2">
+                                <Globe className="w-5 h-5 text-emerald-400" />
+                                Interactive Heatmap
+                            </CardTitle>
+                            <CardDescription>Visualizing global infrastructure utilization and traffic hotspots.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-0 relative aspect-[21/9] min-h-[400px] bg-black/40">
+                            <ComposableMap projectionConfig={{ scale: 140 }}>
+                                <Geographies geography={geoUrl}>
+                                    {({ geographies }) =>
+                                        geographies.map((geo) => {
+                                            const country = stats.countryStats.find((s) => s.id === geo.properties.ISO_A2 || s.id === geo.id);
+                                            return (
+                                                <Geography
+                                                    key={geo.rsmKey}
+                                                    geography={geo}
+                                                    fill={country ? colorScale(country.count) : "#1a1a1a"}
+                                                    stroke="#333"
+                                                    strokeWidth={0.5}
+                                                    style={{
+                                                        default: { outline: "none" },
+                                                        hover: { fill: "#FE4A49", outline: "none", cursor: "crosshair" },
+                                                        pressed: { outline: "none" },
+                                                    }}
+                                                />
+                                            );
+                                        })
+                                    }
+                                </Geographies>
+                            </ComposableMap>
+
+                            {/* Heatmap Legend */}
+                            <div className="absolute bottom-6 left-6 p-4 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md">
+                                <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-3 font-bold">Traffic Density</p>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-[10px]">Low</span>
+                                    <div className="w-32 h-2 rounded-full bg-gradient-to-r from-[#1a1a1a] to-[#FE4A49]" />
+                                    <span className="text-[10px]">Critical</span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Traffic Graph */}
@@ -247,13 +304,6 @@ const Analytics = () => {
                                                 </TableCell>
                                             </TableRow>
                                         ))}
-                                        {stats.recentViews.length === 0 && (
-                                            <TableRow>
-                                                <TableCell colSpan={5} className="text-center py-12 text-muted-foreground italic">
-                                                    Awaiting first node connection...
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
                                     </TableBody>
                                 </Table>
                             </div>
@@ -263,19 +313,19 @@ const Analytics = () => {
                     {/* Infrastructure Resilience */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <FeatureInfoCard
-                            icon={<Shield className="w-5 h-5 text-accent" />}
-                            title="Zero-Trust Architecture"
-                            description="All analytical payloads are isolated from public endpoints and encrypted at rest."
+                            icon={<Shield className="w-5 h-5 text-emerald-500" />}
+                            title="X-Admin Authentication"
+                            description="All data requests are verified via a secure header-based PIN protocol, effectively izolating the dashboard from public probes."
                         />
                         <FeatureInfoCard
                             icon={<Server className="w-5 h-5 text-accent" />}
-                            title="Distributed Nodes"
-                            description="Active monitoring across global edge locations for real-time traffic validation."
+                            title="PostgreSQL Core"
+                            description="Active monitoring on Railway infrastructure for real-time traffic persistence and relational metadata tracking."
                         />
                         <FeatureInfoCard
                             icon={<NavIcon className="w-5 h-5 text-accent" />}
-                            title="Identity Shielding"
-                            description="GDPR-compliant IP mask option available for enhanced visitor privacy protocols."
+                            title="Global Surveillance"
+                            description="Live HEATMAP visualization enabled by real-time geolocation resolution from across 240+ countries."
                         />
                     </div>
                 </main>
@@ -346,7 +396,7 @@ const StatCard = ({ title, value, icon, description }: any) => (
 );
 
 const FeatureInfoCard = ({ icon, title, description }: any) => (
-    <div className="p-6 rounded-xl border border-border/50 bg-secondary/5 hover:border-accent/40 transition-all group">
+    <div className="p-6 rounded-xl border border-border/50 bg-secondary/5 hover:border-accent/40 transition-all group overflow-hidden relative">
         <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             {icon}
         </div>

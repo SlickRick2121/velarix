@@ -19,6 +19,7 @@ import TechnicalAutomation from "./pages/TechnicalAutomation";
 import WebOptimization from "./pages/WebOptimization";
 import TechnicalConsultation from "./pages/TechnicalConsultation";
 import Analytics from "./pages/Analytics";
+import Status from "./pages/Status";
 import { trackView } from "./lib/analytics";
 import { useEffect } from "react";
 
@@ -58,6 +59,7 @@ const App = () => {
                 <Route path="/technical-automation" element={<TechnicalAutomation />} />
                 <Route path="/web-optimization" element={<WebOptimization />} />
                 <Route path="/technical-consultation" element={<TechnicalConsultation />} />
+                <Route path="/status" element={<Status />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

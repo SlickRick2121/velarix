@@ -100,6 +100,14 @@ app.post('/api/analytics', async (req, res) => {
 });
 
 app.get('/api/analytics/stats', async (req, res) => {
+    const adminPin = req.headers['x-admin-pin'];
+
+    // Simple PIN check for protection (matching the frontend 2323)
+    // In production, you should ideally use a long secure string in Railway Variables
+    if (adminPin !== '2323') {
+        return res.status(401).json({ error: 'Unauthorized: Admin Clearance Required' });
+    }
+
     try {
         const result = await pool.query('SELECT * FROM analytics_events ORDER BY timestamp DESC');
         res.json(result.rows);

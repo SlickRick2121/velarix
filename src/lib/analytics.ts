@@ -32,6 +32,7 @@ export interface AnalyticsStats {
   cities: number;
   recentViews: VisitorData[];
   topLocations: { name: string; count: number }[];
+  countryStats: { id: string; count: number }[];
   viewsByDate: { date: string; count: number }[];
   browserStats: { name: string; count: number }[];
   osStats: { name: string; count: number }[];
@@ -117,9 +118,20 @@ export const trackView = async () => {
   }
 };
 
-export const getAnalyticsStats = async (): Promise<AnalyticsStats> => {
+export const getAnalyticsStats = async (pin?: string): Promise<AnalyticsStats> => {
   try {
-    const response = await fetch(`${API_BASE}/api/analytics/stats`);
+    const authPin = pin || sessionStorage.getItem('admin_access_pin') || '';
+
+    const response = await fetch(`${API_BASE}/api/analytics/stats`, {
+      headers: {
+        'x-admin-pin': authPin
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Unauthorized');
+    }
+
     const rawData = await response.json();
 
     const data: VisitorData[] = rawData.map((v: any) => ({
@@ -145,6 +157,16 @@ export const getAnalyticsStats = async (): Promise<AnalyticsStats> => {
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
+
+    // Country Stats (for Heatmap)
+    const countryCounts: Record<string, number> = {};
+    data.forEach(v => {
+      if (v.countryCode) {
+        countryCounts[v.countryCode] = (countryCounts[v.countryCode] || 0) + 1;
+      }
+    });
+    const countryStats = Object.entries(countryCounts)
+      .map(([id, count]) => ({ id, count }));
 
     const viewsByDateMap: Record<string, number> = {};
     data.forEach(v => {
@@ -187,6 +209,7 @@ export const getAnalyticsStats = async (): Promise<AnalyticsStats> => {
       cities,
       recentViews,
       topLocations,
+      countryStats,
       viewsByDate,
       browserStats,
       osStats,
@@ -201,6 +224,7 @@ export const getAnalyticsStats = async (): Promise<AnalyticsStats> => {
       cities: 0,
       recentViews: [],
       topLocations: [],
+      countryStats: [],
       viewsByDate: [],
       browserStats: [],
       osStats: [],
