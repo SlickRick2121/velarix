@@ -10,7 +10,7 @@ const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, signOut } = useAuth();
-  
+
   const isHomePage = location.pathname === '/';
 
   useEffect(() => {
@@ -32,7 +32,7 @@ const Navigation = () => {
     }
     setIsMobileMenuOpen(false);
   };
-  
+
   const handleNavigation = (path: string) => {
     navigate(path);
     setIsMobileMenuOpen(false);
@@ -52,6 +52,7 @@ const Navigation = () => {
     { label: 'Services', path: '/services' },
     { label: 'About', id: 'about' },
     { label: 'Portfolio', id: 'portfolio' },
+    { label: 'Analytics', path: '/analytics' },
     { label: 'Blog', path: '/blog' },
     { label: 'Contact', id: 'contact' }
   ];
@@ -59,14 +60,13 @@ const Navigation = () => {
   const isServicesPage = location.pathname === '/services';
 
   return (
-    <nav 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out ${
-        isScrolled ? 'bg-background/95 backdrop-blur-lg shadow-lg border-b border-accent/20' : 'bg-background/70 backdrop-blur-md'
-      }`}
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out ${isScrolled ? 'bg-background/95 backdrop-blur-lg shadow-lg border-b border-accent/20' : 'bg-background/70 backdrop-blur-md'
+        }`}
     >
       <div className="container px-4 mx-auto">
         <div className="flex items-center justify-between h-20">
-          <button 
+          <button
             onClick={() => {
               if (isHomePage) {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -78,7 +78,7 @@ const Navigation = () => {
           >
             Velarix<span className="text-accent">.</span>
           </button>
-          
+
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
             {navLinks.map((link) => {
@@ -87,11 +87,10 @@ const Navigation = () => {
                 <button
                   key={link.label}
                   onClick={() => link.path ? handleNavigation(link.path) : scrollToSection(link.id!)}
-                  className={`transition-colors font-medium drop-shadow-sm ${
-                    isActive 
-                      ? 'text-[#FE4A49]' 
+                  className={`transition-colors font-medium drop-shadow-sm ${isActive
+                      ? 'text-[#FE4A49]'
                       : 'text-foreground hover:text-accent'
-                  }`}
+                    }`}
                 >
                   {link.label}
                 </button>
@@ -150,11 +149,10 @@ const Navigation = () => {
                   <button
                     key={link.label}
                     onClick={() => link.path ? handleNavigation(link.path) : scrollToSection(link.id!)}
-                    className={`transition-colors font-medium text-left px-4 py-2 ${
-                      isActive 
-                        ? 'text-[#FE4A49]' 
+                    className={`transition-colors font-medium text-left px-4 py-2 ${isActive
+                        ? 'text-[#FE4A49]'
                         : 'text-foreground hover:text-accent'
-                    }`}
+                      }`}
                   >
                     {link.label}
                   </button>

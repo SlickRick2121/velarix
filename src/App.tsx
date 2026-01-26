@@ -18,39 +18,51 @@ import BrandingContent from "./pages/BrandingContent";
 import TechnicalAutomation from "./pages/TechnicalAutomation";
 import WebOptimization from "./pages/WebOptimization";
 import TechnicalConsultation from "./pages/TechnicalConsultation";
+import Analytics from "./pages/Analytics";
+import { trackView } from "./lib/analytics";
+import { useEffect } from "react";
+
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <InitialLoader />
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthGuard>
-            <PageTransition>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/services" element={<Services />} />
-                <Route path="/blog" element={<Blog />} />
-                <Route path="/blog/:slug" element={<BlogPost />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/website-ecommerce" element={<WebsiteEcommerce />} />
-                <Route path="/branding-content" element={<BrandingContent />} />
-                <Route path="/technical-automation" element={<TechnicalAutomation />} />
-                <Route path="/web-optimization" element={<WebOptimization />} />
-                <Route path="/technical-consultation" element={<TechnicalConsultation />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </PageTransition>
-          </AuthGuard>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  useEffect(() => {
+    trackView();
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <InitialLoader />
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthGuard>
+              <PageTransition>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/services" element={<Services />} />
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/blog/:slug" element={<BlogPost />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/analytics" element={<Analytics />} />
+                  <Route path="/website-ecommerce" element={<WebsiteEcommerce />} />
+                  <Route path="/branding-content" element={<BrandingContent />} />
+                  <Route path="/technical-automation" element={<TechnicalAutomation />} />
+                  <Route path="/web-optimization" element={<WebOptimization />} />
+                  <Route path="/technical-consultation" element={<TechnicalConsultation />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </PageTransition>
+            </AuthGuard>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
+
 
 export default App;
