@@ -31,6 +31,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    // Check for persisted Admin session
+    const persistedAdmin = sessionStorage.getItem('is_admin_session');
+    if (persistedAdmin === 'true') {
+      setUser({
+        uid: 'admin-railway',
+        email: 'admin@velarix.digital',
+        displayName: 'Railway Admin',
+      } as any);
+      setIsAuthenticated(true);
+      setLoading(false);
+      return;
+    }
+
     // Listen for auth state changes
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);

@@ -72,6 +72,7 @@ export default function Login() {
 
       setUser(mockUser);
       setIsAuthenticated(true);
+      sessionStorage.setItem('is_admin_session', 'true');
       sessionStorage.setItem('admin_access_pin', '2323');
 
       toast({
