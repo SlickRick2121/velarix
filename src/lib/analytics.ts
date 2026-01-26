@@ -1,7 +1,4 @@
 
-import { db } from './firebase';
-import { collection, addDoc, getDocs, query, orderBy } from 'firebase/firestore';
-
 export interface VisitorData {
   status: string;
   country: string;
@@ -41,7 +38,7 @@ export interface AnalyticsStats {
   deviceStats: { name: string; count: number }[];
 }
 
-const ANALYTICS_COLLECTION = 'analytics_events';
+const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:3001' : '';
 
 const getBrowserName = (ua: string) => {
   if (ua.includes('Firefox')) return 'Firefox';
@@ -74,7 +71,6 @@ export const trackView = async () => {
     const lastTracked = sessionStorage.getItem('last_tracked_view');
     const currentPath = window.location.pathname;
 
-    // Allow tracking different pages in same session, but prevent spam on same page
     if (lastTracked === currentPath) return;
 
     const response = await fetch('http://ip-api.com/json/?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,query');
@@ -82,7 +78,7 @@ export const trackView = async () => {
 
     if (data.status === 'success') {
       const ua = navigator.userAgent;
-      const visitor: VisitorData = {
+      const visitor = {
         ...data,
         timestamp: new Date().toISOString(),
         userAgent: ua,
@@ -95,8 +91,13 @@ export const trackView = async () => {
         path: currentPath,
       };
 
-      // Store in Firestore
-      await addDoc(collection(db, ANALYTICS_COLLECTION), visitor);
+      // Store in Railway Postgres via our server
+      await fetch(`${API_BASE}/api/analytics`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(visitor)
+      });
+
       sessionStorage.setItem('last_tracked_view', currentPath);
     }
   } catch (error) {
@@ -106,22 +107,25 @@ export const trackView = async () => {
 
 export const getAnalyticsStats = async (): Promise<AnalyticsStats> => {
   try {
-    const q = query(collection(db, ANALYTICS_COLLECTION), orderBy('timestamp', 'desc'));
-    const querySnapshot = await getDocs(q);
-    const data: VisitorData[] = [];
+    const response = await fetch(`${API_BASE}/api/analytics/stats`);
+    const rawData = await response.json();
 
-    querySnapshot.forEach((doc) => {
-      data.push(doc.data() as VisitorData);
-    });
+    // Convert DB keys back to camelCase if necessary, but server.js saved them with underscore
+    // or we can just map them here.
+    const data: VisitorData[] = rawData.map((v: any) => ({
+      ...v,
+      countryCode: v.country_code,
+      regionName: v.region_name,
+      as: v.as_info,
+      screenResolution: v.screen_resolution
+    }));
 
     const uniqueIPs = new Set(data.map(v => v.query)).size;
     const countries = new Set(data.map(v => v.country)).size;
     const cities = new Set(data.map(v => v.city)).size;
 
-    // Recent views (last 100)
     const recentViews = data.slice(0, 100);
 
-    // Top Locations
     const locationCounts: Record<string, number> = {};
     data.forEach(v => {
       const loc = `${v.city}, ${v.country}`;
@@ -132,7 +136,6 @@ export const getAnalyticsStats = async (): Promise<AnalyticsStats> => {
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 
-    // Views by Date
     const viewsByDateMap: Record<string, number> = {};
     data.forEach(v => {
       const date = new Date(v.timestamp).toLocaleDateString();
@@ -143,7 +146,6 @@ export const getAnalyticsStats = async (): Promise<AnalyticsStats> => {
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .slice(-14);
 
-    // Browser Stats
     const browserCounts: Record<string, number> = {};
     data.forEach(v => {
       browserCounts[v.browser] = (browserCounts[v.browser] || 0) + 1;
@@ -152,7 +154,6 @@ export const getAnalyticsStats = async (): Promise<AnalyticsStats> => {
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count);
 
-    // OS Stats
     const osCounts: Record<string, number> = {};
     data.forEach(v => {
       osCounts[v.os] = (osCounts[v.os] || 0) + 1;
@@ -161,7 +162,6 @@ export const getAnalyticsStats = async (): Promise<AnalyticsStats> => {
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count);
 
-    // Device Stats
     const deviceCounts: Record<string, number> = {};
     data.forEach(v => {
       deviceCounts[v.device] = (deviceCounts[v.device] || 0) + 1;
