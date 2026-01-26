@@ -52,7 +52,7 @@ const Navigation = () => {
     { label: 'Services', path: '/services' },
     { label: 'About', id: 'about' },
     { label: 'Portfolio', id: 'portfolio' },
-    { label: 'Analytics', path: '/analytics' },
+    ...(isAuthenticated ? [{ label: 'Analytics', path: '/analytics' }] : []),
     { label: 'Blog', path: '/blog' },
     { label: 'Contact', id: 'contact' }
   ];
@@ -88,8 +88,8 @@ const Navigation = () => {
                   key={link.label}
                   onClick={() => link.path ? handleNavigation(link.path) : scrollToSection(link.id!)}
                   className={`transition-colors font-medium drop-shadow-sm ${isActive
-                      ? 'text-[#FE4A49]'
-                      : 'text-foreground hover:text-accent'
+                    ? 'text-[#FE4A49]'
+                    : 'text-foreground hover:text-accent'
                     }`}
                 >
                   {link.label}
@@ -150,8 +150,8 @@ const Navigation = () => {
                     key={link.label}
                     onClick={() => link.path ? handleNavigation(link.path) : scrollToSection(link.id!)}
                     className={`transition-colors font-medium text-left px-4 py-2 ${isActive
-                        ? 'text-[#FE4A49]'
-                        : 'text-foreground hover:text-accent'
+                      ? 'text-[#FE4A49]'
+                      : 'text-foreground hover:text-accent'
                       }`}
                   >
                     {link.label}

@@ -21,38 +21,38 @@ const Contact = () => {
   const { toast } = useToast();
   const { ref: titleRef, isVisible: titleVisible } = useScrollAnimation();
   const { ref: cardRef, isVisible: cardVisible } = useScrollAnimation();
-  
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     projectType: "",
     message: ""
   });
-  
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
     setIsSubmitting(true);
-    
+
     try {
       const validatedData = contactSchema.parse(formData);
-      
+
       // Create mailto link with encoded data
       const subject = encodeURIComponent(`New Project Inquiry: ${validatedData.projectType}`);
       const body = encodeURIComponent(
         `Name: ${validatedData.name}\nEmail: ${validatedData.email}\nProject Type: ${validatedData.projectType}\n\nMessage:\n${validatedData.message}`
       );
-      
-      window.location.href = `mailto:hello@velarix.digital?subject=${subject}&body=${body}`;
-      
+
+      window.location.href = `mailto:admin@velarix.digital?subject=${subject}&body=${body}`;
+
       toast({
         title: "Opening email client",
         description: "Your default email client will open with your message."
       });
-      
+
       // Reset form
       setFormData({ name: "", email: "", projectType: "", message: "" });
     } catch (error) {
@@ -64,7 +64,7 @@ const Contact = () => {
           }
         });
         setErrors(newErrors);
-        
+
         toast({
           title: "Validation Error",
           description: "Please check the form for errors.",
@@ -75,28 +75,26 @@ const Contact = () => {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <section id="contact" className="py-24 bg-secondary/30">
       <div className="container px-4 mx-auto">
         <div className="max-w-4xl mx-auto">
-          <div 
+          <div
             ref={titleRef as any}
-            className={`text-center mb-12 transition-all duration-700 ${
-              titleVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
+            className={`text-center mb-12 transition-all duration-700 ${titleVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              }`}
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">Let's Create Together</h2>
             <p className="text-xl text-muted-foreground font-light">
               Ready to elevate your digital presence? Let's talk.
             </p>
           </div>
-          
-          <Card 
+
+          <Card
             ref={cardRef as any}
-            className={`border border-border transition-all duration-700 delay-200 ${
-              cardVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
+            className={`border border-border transition-all duration-700 delay-200 ${cardVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              }`}
           >
             <CardHeader className="text-center pb-4">
               <CardTitle className="text-2xl tracking-tight">Start Your Project</CardTitle>
@@ -104,7 +102,7 @@ const Contact = () => {
                 Whether you're in the Netherlands or the United States, I'm here to help bring your vision to life.
               </CardDescription>
             </CardHeader>
-            
+
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
@@ -121,7 +119,7 @@ const Contact = () => {
                       <p className="text-sm text-destructive">{errors.name}</p>
                     )}
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
                     <Input
@@ -137,7 +135,7 @@ const Contact = () => {
                     )}
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="projectType">Project Type</Label>
                   <Select
@@ -160,7 +158,7 @@ const Contact = () => {
                     <p className="text-sm text-destructive">{errors.projectType}</p>
                   )}
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="message">Message</Label>
                   <Textarea
@@ -175,7 +173,7 @@ const Contact = () => {
                     <p className="text-sm text-destructive">{errors.message}</p>
                   )}
                 </div>
-                
+
                 <div className="pt-4">
                   <button
                     type="submit"
@@ -190,25 +188,25 @@ const Contact = () => {
                   </button>
                 </div>
               </form>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8 pt-8 border-t border-border text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <span>Netherlands & United States</span>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-accent" />
-                  <a 
-                    href="mailto:hello@velarix.digital" 
+                  <a
+                    href="mailto:admin@velarix.digital"
                     className="hover:text-accent transition-colors"
                   >
-                    hello@velarix.digital
+                    admin@velarix.digital
                   </a>
                 </div>
               </div>
             </CardContent>
           </Card>
-          
+
           <p className="text-center text-sm text-muted-foreground mt-8 font-light">
             Operating remotely and in-person • Serving clients internationally
           </p>

@@ -87,7 +87,7 @@ Based on PlentifulPower Consulting business plan:
 - ❌ Phone number (not present in codebase)
 
 **Kept:**
-- ✅ Email: hello@velarix.digital
+- ✅ Email: admin@velarix.digital
 - ✅ Location text: "Netherlands & United States" (text only, no icon)
 
 ## Cleanup Status

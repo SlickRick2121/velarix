@@ -38,25 +38,30 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <AuthGuard>
-              <PageTransition>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/services" element={<Services />} />
-                  <Route path="/blog" element={<Blog />} />
-                  <Route path="/blog/:slug" element={<BlogPost />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/analytics" element={<Analytics />} />
-                  <Route path="/website-ecommerce" element={<WebsiteEcommerce />} />
-                  <Route path="/branding-content" element={<BrandingContent />} />
-                  <Route path="/technical-automation" element={<TechnicalAutomation />} />
-                  <Route path="/web-optimization" element={<WebOptimization />} />
-                  <Route path="/technical-consultation" element={<TechnicalConsultation />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </PageTransition>
-            </AuthGuard>
+            <PageTransition>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/services" element={<Services />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<BlogPost />} />
+                <Route path="/login" element={<Login />} />
+                <Route
+                  path="/analytics"
+                  element={
+                    <AuthGuard>
+                      <Analytics />
+                    </AuthGuard>
+                  }
+                />
+                <Route path="/website-ecommerce" element={<WebsiteEcommerce />} />
+                <Route path="/branding-content" element={<BrandingContent />} />
+                <Route path="/technical-automation" element={<TechnicalAutomation />} />
+                <Route path="/web-optimization" element={<WebOptimization />} />
+                <Route path="/technical-consultation" element={<TechnicalConsultation />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </PageTransition>
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
