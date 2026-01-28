@@ -2,12 +2,13 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { getAnalyticsStats, getFlagEmoji, AnalyticsStats, deleteLog, clearAllLogs } from '@/lib/analytics';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell
 } from 'recharts';
 import {
-    Users, Globe, MapPin, Activity, LayoutDashboard, Database, Shield, Server, RefreshCw, Smartphone, Monitor, Laptop, Info, Navigation as NavIcon, Lock, Trash2, Search, Filter, AlertTriangle
+    Users, Globe, MapPin, Activity, LayoutDashboard, Database, Shield, Server, RefreshCw, Smartphone, Monitor, Laptop, Info, Navigation as NavIcon, Lock, Trash2, Search, Filter, AlertTriangle, Cpu, Globe2, MousePointer2
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -15,11 +16,12 @@ import PageTransition from '@/components/PageTransition';
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { scaleLinear } from "d3-scale";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Use the exact TopoJSON URL used in react-simple-maps official examples for maximum reliability
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
-const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+const COLORS = ['#FE4A49', '#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28'];
 
 const Analytics = () => {
     const [stats, setStats] = useState<AnalyticsStats | null>(null);
@@ -157,10 +159,11 @@ const Analytics = () => {
         .range(["#1a1a1a", "#FE4A49"]);
 
     return (
-        <div className="min-h-screen bg-background text-foreground">
+        <div className="min-h-screen bg-background text-foreground font-sans">
             <Navigation />
             <PageTransition>
                 <main className="container mx-auto px-4 py-32 space-y-8">
+                    {/* Header Section */}
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                         <div>
                             <h1 className="text-4xl font-bold tracking-tight mb-2 flex items-center gap-3">
@@ -172,7 +175,7 @@ const Analytics = () => {
                         <div className="flex flex-col items-end gap-2">
                             <div className="flex gap-2">
                                 <div className="bg-secondary/50 px-4 py-2 rounded-lg border border-border text-xs font-mono">
-                                    <span className="text-accent">VERSION:</span> 3.6.0
+                                    <span className="text-accent">VERSION:</span> 4.0.0
                                 </div>
                                 <div className="bg-secondary/50 px-4 py-2 rounded-lg border border-border text-xs font-mono text-emerald-500">
                                     <span className="text-accent underline">TERMINAL:</span> MASTER
@@ -188,6 +191,7 @@ const Analytics = () => {
                         </div>
                     </div>
 
+                    {/* Stats Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <StatCard title="Impressions" value={stats.totalViews} icon={<Activity className="w-5 h-5 text-blue-500" />} description="Total requests logged" />
                         <StatCard title="Entities" value={stats.uniqueIPs} icon={<Users className="w-5 h-5 text-purple-500" />} description="Unique IP addresses" />
@@ -195,63 +199,122 @@ const Analytics = () => {
                         <StatCard title="Endpoints" value={uniquePaths.length} icon={<NavIcon className="w-5 h-5 text-orange-500" />} description="Active site paths" />
                     </div>
 
-                    {/* Heatmap Section */}
-                    <Card className="border-border/50 bg-secondary/10 backdrop-blur-xl overflow-hidden shadow-2xl shadow-accent/5">
-                        <CardHeader className="border-b border-white/5">
-                            <CardTitle className="flex items-center gap-2">
-                                <Globe className="w-5 h-5 text-emerald-400" />
-                                Interactive Global Heatmap
-                            </CardTitle>
-                            <CardDescription>Visualizing global infrastructure utilization and traffic hotspots.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-0 relative bg-black/40 h-[400px]">
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <ComposableMap projectionConfig={{ scale: 120 }}>
-                                    <Geographies geography={geoUrl}>
-                                        {({ geographies }) =>
-                                            geographies.map((geo) => {
-                                                const isoCode = geo.properties.ISO_A2 || geo.properties.iso_a2;
-                                                // world-atlas uses numerical IDs too, let's just match on any property
-                                                const countryData = stats.countryStats.find(s =>
-                                                    s.id === isoCode ||
-                                                    s.id === geo.id ||
-                                                    s.id === geo.properties.name
-                                                );
+                    {/* Map & Hotspots Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Heatmap Section */}
+                        <Card className="lg:col-span-2 border-border/50 bg-secondary/10 backdrop-blur-xl overflow-hidden shadow-2xl shadow-accent/5">
+                            <CardHeader className="border-b border-white/5">
+                                <CardTitle className="flex items-center gap-2">
+                                    <Globe className="w-5 h-5 text-emerald-400" />
+                                    Interactive Global Heatmap
+                                </CardTitle>
+                                <CardDescription>Visualizing global infrastructure utilization and traffic hotspots.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-0 relative bg-black/40 h-[450px]">
+                                <TooltipProvider>
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <ComposableMap projectionConfig={{ scale: 140 }}>
+                                            <Geographies geography={geoUrl}>
+                                                {({ geographies }) =>
+                                                    geographies.map((geo) => {
+                                                        const isoCode = geo.properties.ISO_A2 || geo.properties.iso_a2;
+                                                        const countryName = geo.properties.name || geo.properties.NAME;
+                                                        const countryData = stats.countryStats.find(s =>
+                                                            s.id === isoCode ||
+                                                            s.id === geo.id ||
+                                                            s.id === countryName
+                                                        );
 
-                                                return (
-                                                    <Geography
-                                                        key={geo.rsmKey}
-                                                        geography={geo}
-                                                        fill={countryData ? colorScale(countryData.count) : "#1a1a1a"}
-                                                        stroke="#333"
-                                                        strokeWidth={0.5}
-                                                        style={{
-                                                            default: { outline: "none" },
-                                                            hover: { fill: "#FE4A49", outline: "none", cursor: "pointer" },
-                                                            pressed: { outline: "none" },
-                                                        }}
-                                                    />
-                                                );
-                                            })
-                                        }
-                                    </Geographies>
-                                </ComposableMap>
-                            </div>
+                                                        const sessionCount = countryData ? countryData.count : 0;
+                                                        const label = `${countryName}: ${sessionCount} ${sessionCount === 1 ? 'session' : 'sessions'}`;
 
-                            <div className="absolute bottom-6 left-6 p-4 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md">
-                                <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-3 font-bold">Traffic Density</p>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-[10px]">Idle</span>
-                                    <div className="w-32 h-2 rounded-full bg-gradient-to-r from-[#1a1a1a] to-[#FE4A49]" />
-                                    <span className="text-[10px]">Maximum</span>
+                                                        return (
+                                                            <Tooltip key={geo.rsmKey}>
+                                                                <TooltipTrigger asChild>
+                                                                    <Geography
+                                                                        geography={geo}
+                                                                        fill={countryData ? colorScale(countryData.count) : "#1a1a1a"}
+                                                                        stroke="#333"
+                                                                        strokeWidth={0.5}
+                                                                        style={{
+                                                                            default: { outline: "none" },
+                                                                            hover: { fill: "#FE4A49", outline: "none", cursor: "pointer" },
+                                                                            pressed: { outline: "none" },
+                                                                        }}
+                                                                    />
+                                                                </TooltipTrigger>
+                                                                <TooltipContent className="bg-black/90 border-accent/20 backdrop-blur-md shadow-2xl">
+                                                                    <div className="flex items-center gap-2 px-1">
+                                                                        <span className="text-lg leading-none">{countryData ? getFlagEmoji(countryData.id) : ''}</span>
+                                                                        <p className="font-mono text-xs font-bold">{label}</p>
+                                                                    </div>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        );
+                                                    })
+                                                }
+                                            </Geographies>
+                                        </ComposableMap>
+                                    </div>
+                                </TooltipProvider>
+
+                                <div className="absolute bottom-6 left-6 p-4 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md">
+                                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-3 font-bold text-accent">Traffic Density</p>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-[10px]">Idle</span>
+                                        <div className="w-32 h-2 rounded-full bg-gradient-to-r from-[#1a1a1a] to-[#FE4A49]" />
+                                        <span className="text-[10px]">Active</span>
+                                    </div>
                                 </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
+
+                        {/* Top Locations List */}
+                        <Card className="border-border/50 bg-secondary/10 backdrop-blur-xl flex flex-col">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <MapPin className="w-5 h-5 text-accent" />
+                                    Top Hotspots
+                                </CardTitle>
+                                <CardDescription>Highest concentration of active sessions.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex-1 overflow-y-auto">
+                                <div className="space-y-4">
+                                    {stats.topLocations.map((loc, i) => (
+                                        <div key={i} className="flex items-center justify-between group p-2 rounded-lg hover:bg-accent/5 transition-all">
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-semibold group-hover:text-accent transition-colors">{loc.name}</span>
+                                                <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-tighter">
+                                                    <Badge variant="outline" className="h-4 py-0 text-[8px] border-accent/20 text-accent/60">NODE-{i + 1}</Badge>
+                                                    Regional Uplink active
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-xl font-black text-accent">{loc.count}</span>
+                                                <span className="text-[8px] block text-muted-foreground">SESSIONS</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {stats.topLocations.length === 0 && (
+                                        <div className="text-center py-10 text-muted-foreground italic text-sm">
+                                            Awaiting geo-spatial data...
+                                        </div>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Environment Charts Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <ChartCard title="Environment (OS)" data={stats.osStats} icon={<Cpu className="w-4 h-4 text-purple-400" />} />
+                        <ChartCard title="Clients (Browser)" data={stats.browserStats} icon={<Globe2 className="w-4 h-4 text-blue-400" />} />
+                        <ChartCard title="Hardware (Device)" data={stats.deviceStats} icon={<Smartphone className="w-4 h-4 text-emerald-400" />} />
+                    </div>
 
                     {/* Management & Feed Section */}
                     <Card className="border-border/50 bg-secondary/10 backdrop-blur-xl">
-                        <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-6">
                             <div className="space-y-1">
                                 <CardTitle className="flex items-center gap-2">
                                     <Database className="w-5 h-5 text-accent" />
@@ -268,7 +331,7 @@ const Analytics = () => {
                                         placeholder="Search entities..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="pl-9 pr-4 py-2 bg-black/40 border border-white/10 rounded-xl text-xs focus:ring-1 focus:ring-accent outline-none w-[200px]"
+                                        className="pl-9 pr-4 py-2 bg-black/40 border border-white/10 rounded-xl text-xs focus:ring-1 focus:ring-accent outline-none w-[200px] transition-all focus:w-[250px]"
                                     />
                                 </div>
                                 <div className="flex items-center gap-2 px-3 py-2 bg-black/40 border border-white/10 rounded-xl">
@@ -286,17 +349,17 @@ const Analytics = () => {
                                 </div>
                             </div>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="pt-6">
                             <div className="overflow-x-auto">
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="hover:bg-transparent border-b border-border/50">
-                                            <TableHead className="w-[150px]">TIMESTAMP</TableHead>
-                                            <TableHead>LOCATION & ISP</TableHead>
-                                            <TableHead>PLATFORM</TableHead>
-                                            <TableHead>TRAJECTORY</TableHead>
-                                            <TableHead>IDENTITY</TableHead>
-                                            <TableHead className="text-right">MGMT</TableHead>
+                                            <TableHead className="w-[150px] text-[10px] font-bold text-accent uppercase tracking-widest">TIMESTAMP</TableHead>
+                                            <TableHead className="text-[10px] font-bold text-accent uppercase tracking-widest">LOCATION & ISP</TableHead>
+                                            <TableHead className="text-[10px] font-bold text-accent uppercase tracking-widest">PLATFORM</TableHead>
+                                            <TableHead className="text-[10px] font-bold text-accent uppercase tracking-widest">TECH SPECS</TableHead>
+                                            <TableHead className="text-[10px] font-bold text-accent uppercase tracking-widest">IDENTITY</TableHead>
+                                            <TableHead className="text-right text-[10px] font-bold text-accent uppercase tracking-widest">MGMT</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -318,15 +381,22 @@ const Analytics = () => {
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex items-center gap-2 text-xs">
-                                                        <span className="text-accent">{view.browser}</span>
+                                                        <Badge variant="outline" className="border-accent/30 text-[9px] uppercase font-mono px-1.5 h-5 bg-accent/5">
+                                                            {view.os}
+                                                        </Badge>
                                                         <span className="text-muted-foreground/30">/</span>
-                                                        <span>{view.os}</span>
+                                                        <span className="text-accent font-semibold">{view.browser}</span>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <span className="text-[10px] font-mono bg-accent/10 text-accent px-2 py-1 rounded truncate block max-w-[120px]">
-                                                        {view.path}
-                                                    </span>
+                                                    <div className="flex flex-col gap-1">
+                                                        <span className="text-[10px] font-mono text-muted-foreground">
+                                                            RES: {view.screenResolution || 'DETECTED'}
+                                                        </span>
+                                                        <span className="text-[10px] font-mono bg-accent/10 text-accent px-2 py-0.5 rounded w-fit border border-accent/20">
+                                                            {view.path}
+                                                        </span>
+                                                    </div>
                                                 </TableCell>
                                                 <TableCell className="font-mono text-[10px] text-accent/80">
                                                     {view.query}
@@ -356,20 +426,46 @@ const Analytics = () => {
                     </Card>
 
                     {/* Traffic Velocity */}
-                    <Card className="border-border/50 bg-secondary/10 backdrop-blur-xl">
+                    <Card className="border-border/50 bg-secondary/10 backdrop-blur-xl shadow-2xl">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Activity className="w-5 h-5 text-accent" />
-                                Traffic Peak Velocity
+                                Traffic Peak Velocity (30d)
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="h-[300px]">
+                        <CardContent className="h-[300px] pt-4">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={stats.viewsByDate}>
-                                    <XAxis dataKey="date" stroke="#444" fontSize={10} />
-                                    <YAxis stroke="#444" fontSize={10} />
-                                    <RechartsTooltip contentStyle={{ backgroundColor: '#000', border: '1px solid #333' }} />
-                                    <Area type="monotone" dataKey="count" stroke="#FE4A49" fill="#FE4A49" fillOpacity={0.1} />
+                                    <defs>
+                                        <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#FE4A49" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#FE4A49" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#222" vertical={false} />
+                                    <XAxis
+                                        dataKey="date"
+                                        stroke="#444"
+                                        fontSize={10}
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tickFormatter={(val) => val.split('/')[0] + '/' + val.split('/')[1]}
+                                    />
+                                    <YAxis stroke="#444" fontSize={10} axisLine={false} tickLine={false} />
+                                    <RechartsTooltip
+                                        contentStyle={{ backgroundColor: '#000', border: '1px solid #333', borderRadius: '12px', boxShadow: '0 10px 30px -10px rgba(254, 74, 73, 0.2)' }}
+                                        itemStyle={{ color: '#FE4A49', fontWeight: 'bold' }}
+                                        labelStyle={{ color: '#666', marginBottom: '4px' }}
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="count"
+                                        stroke="#FE4A49"
+                                        strokeWidth={4}
+                                        fillOpacity={1}
+                                        fill="url(#colorCount)"
+                                        animationDuration={1500}
+                                    />
                                 </AreaChart>
                             </ResponsiveContainer>
                         </CardContent>
@@ -382,18 +478,88 @@ const Analytics = () => {
 };
 
 const StatCard = ({ title, value, icon, description }: any) => (
-    <Card className="border-border/50 bg-secondary/5 hover:bg-secondary/10 transition-all group overflow-hidden relative">
+    <Card className="border-border/50 bg-secondary/5 hover:border-accent/30 hover:bg-secondary/10 transition-all group overflow-hidden relative">
         <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-full -mr-12 -mt-12 blur-2xl group-hover:bg-accent/10 transition-colors" />
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-semibold tracking-wider text-muted-foreground">{title.toUpperCase()}</CardTitle>
+            <CardTitle className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground mb-0">{title.toUpperCase()}</CardTitle>
             {icon}
         </CardHeader>
         <CardContent>
-            <div className="text-3xl font-bold tracking-tighter">{value}</div>
-            <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-widest">
+            <div className="text-4xl font-black tracking-tighter mb-1">{value}</div>
+            <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-medium opacity-60">
                 {description}
             </p>
         </CardContent>
+    </Card>
+);
+
+const ChartCard = ({ title, data, icon }: any) => (
+    <Card className="border-border/50 bg-secondary/5 overflow-hidden flex flex-col hover:border-accent/20 transition-all">
+        <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                {icon}
+                {title}
+            </CardTitle>
+        </CardHeader>
+        <CardContent className="h-[180px] flex items-center justify-center p-0 relative">
+            <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                    <Pie
+                        data={data}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={75}
+                        paddingAngle={4}
+                        dataKey="count"
+                        stroke="none"
+                    >
+                        {data.map((entry: any, index: number) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                    </Pie>
+                    <RechartsTooltip
+                        contentStyle={{ backgroundColor: '#000', border: '1px solid #333', borderRadius: '8px', fontSize: '10px' }}
+                    />
+                </PieChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-[10px] text-muted-foreground font-bold tracking-tighter opacity-40 uppercase">Metrics</span>
+            </div>
+        </CardContent>
+        <div className="px-6 pb-6 pt-2 flex-1">
+            <div className="space-y-2">
+                {data.slice(0, 3).map((item: any, i: number) => {
+                    const total = data.reduce((acc: number, curr: any) => acc + curr.count, 0);
+                    const percentage = total > 0 ? ((item.count / total) * 100).toFixed(1) : 0;
+                    return (
+                        <div key={i} className="flex flex-col gap-1">
+                            <div className="flex items-center justify-between text-[10px]">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                                    <span className="text-foreground font-semibold truncate max-w-[100px]">{item.name}</span>
+                                </div>
+                                <div className="font-mono flex items-center gap-2">
+                                    <span className="text-accent">{item.count}</span>
+                                    <span className="text-muted-foreground/40 text-[8px]">{percentage}%</span>
+                                </div>
+                            </div>
+                            <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-accent/50 rounded-full"
+                                    style={{ width: `${percentage}%`, backgroundColor: COLORS[i % COLORS.length] }}
+                                />
+                            </div>
+                        </div>
+                    );
+                })}
+                {data.length === 0 && (
+                    <div className="text-center py-4 text-muted-foreground text-[10px] uppercase tracking-widest opacity-50">
+                        Insufficient Data
+                    </div>
+                )}
+            </div>
+        </div>
     </Card>
 );
 

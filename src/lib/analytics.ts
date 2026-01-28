@@ -41,6 +41,10 @@ export interface AnalyticsStats {
 
 const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:3001' : '';
 
+/**
+ * Tracks a page view by sending visitor metadata to the analytics backend.
+ * Uses sessionStorage to prevent duplicate tracking within the same session.
+ */
 export const trackView = async () => {
   try {
     const lastTracked = sessionStorage.getItem('last_tracked_view');
@@ -56,36 +60,38 @@ export const trackView = async () => {
       device: /Mobi|Android/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop'
     };
 
-    // Send to our backend - backend will handle IP and Geo detection
-    await fetch(`${API_BASE}/api/analytics`, {
+    const response = await fetch(`${API_BASE}/api/analytics`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(visitor)
     });
 
-    sessionStorage.setItem('last_tracked_view', currentPath);
-    console.log('[Nexus] View logged');
+    if (response.ok) {
+      sessionStorage.setItem('last_tracked_view', currentPath);
+      console.log('[Nexus Intelligence] Signal synchronized');
+    }
   } catch (error) {
-    // Silent fail for tracking
+    // Fail silently to avoid interrupting user experience
   }
 };
 
+/**
+ * Fetches and processes analytics statistics from the server.
+ * Optimizes raw data into structured components for dashboard visualization.
+ */
 export const getAnalyticsStats = async (pin?: string): Promise<AnalyticsStats> => {
   try {
     const authPin = pin || sessionStorage.getItem('admin_access_pin') || '';
 
     const response = await fetch(`${API_BASE}/api/analytics/stats`, {
-      headers: {
-        'x-admin-pin': authPin
-      }
+      headers: { 'x-admin-pin': authPin }
     });
 
-    if (!response.ok) {
-      throw new Error('Unauthorized');
-    }
+    if (!response.ok) throw new Error('Unauthorized access');
 
     const rawData = await response.json();
 
+    // Single-pass reduction for maximum efficiency
     const data: VisitorData[] = rawData.map((v: any) => ({
       ...v,
       countryCode: v.country_code,
@@ -94,71 +100,72 @@ export const getAnalyticsStats = async (pin?: string): Promise<AnalyticsStats> =
       screenResolution: v.screen_resolution
     }));
 
-    const uniqueIPs = new Set(data.map(v => v.query)).size;
-    const countries = new Set(data.map(v => v.country)).size;
-    const cities = new Set(data.map(v => v.city)).size;
-
-    const recentViews = data.slice(0, 100);
-
+    // Data Aggregation Structures
+    const uniqueIPsSet = new Set<string>();
+    const countriesSet = new Set<string>();
+    const citiesSet = new Set<string>();
     const locationCounts: Record<string, number> = {};
-    data.forEach(v => {
-      const loc = `${v.city || 'Unknown'}, ${v.country || 'Unknown'}`;
-      locationCounts[loc] = (locationCounts[loc] || 0) + 1;
-    });
-    const topLocations = Object.entries(locationCounts)
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-
     const countryCounts: Record<string, number> = {};
+    const viewsByDateMap: Record<string, number> = {};
+    const browserCounts: Record<string, number> = {};
+    const osCounts: Record<string, number> = {};
+    const deviceCounts: Record<string, number> = {};
+
+    // Process all stats in a single loop
     data.forEach(v => {
+      if (v.query) uniqueIPsSet.add(v.query);
+      if (v.country) countriesSet.add(v.country);
+      if (v.city) citiesSet.add(v.city);
+
+      if (v.city || v.country) {
+        const loc = `${v.city || 'Unknown'}, ${v.country || 'Unknown'}`;
+        locationCounts[loc] = (locationCounts[loc] || 0) + 1;
+      }
+
       if (v.countryCode) {
         countryCounts[v.countryCode] = (countryCounts[v.countryCode] || 0) + 1;
       }
+
+      const date = new Date(v.timestamp).toLocaleDateString();
+      viewsByDateMap[date] = (viewsByDateMap[date] || 0) + 1;
+
+      if (v.browser) browserCounts[v.browser] = (browserCounts[v.browser] || 0) + 1;
+      if (v.os) osCounts[v.os] = (osCounts[v.os] || 0) + 1;
+      if (v.device) deviceCounts[v.device] = (deviceCounts[v.device] || 0) + 1;
     });
+
+    // Transform and sort aggregated data
+    const topLocations = Object.entries(locationCounts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+
     const countryStats = Object.entries(countryCounts)
       .map(([id, count]) => ({ id, count }));
 
-    const viewsByDateMap: Record<string, number> = {};
-    data.forEach(v => {
-      const date = new Date(v.timestamp).toLocaleDateString();
-      viewsByDateMap[date] = (viewsByDateMap[date] || 0) + 1;
-    });
     const viewsByDate = Object.entries(viewsByDateMap)
       .map(([date, count]) => ({ date, count }))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(-14);
+      .slice(-30); // Extended history
 
-    const browserCounts: Record<string, number> = {};
-    data.forEach(v => {
-      if (v.browser) browserCounts[v.browser] = (browserCounts[v.browser] || 0) + 1;
-    });
     const browserStats = Object.entries(browserCounts)
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count);
 
-    const osCounts: Record<string, number> = {};
-    data.forEach(v => {
-      if (v.os) osCounts[v.os] = (osCounts[v.os] || 0) + 1;
-    });
     const osStats = Object.entries(osCounts)
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count);
 
-    const deviceCounts: Record<string, number> = {};
-    data.forEach(v => {
-      if (v.device) deviceCounts[v.device] = (deviceCounts[v.device] || 0) + 1;
-    });
     const deviceStats = Object.entries(deviceCounts)
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count);
 
     return {
       totalViews: data.length,
-      uniqueIPs,
-      countries,
-      cities,
-      recentViews,
+      uniqueIPs: uniqueIPsSet.size,
+      countries: countriesSet.size,
+      cities: citiesSet.size,
+      recentViews: data.slice(0, 150), // Increased feed depth
       topLocations,
       countryStats,
       viewsByDate,
@@ -167,19 +174,11 @@ export const getAnalyticsStats = async (pin?: string): Promise<AnalyticsStats> =
       deviceStats
     };
   } catch (error) {
-    console.error('Failed to fetch analytics:', error);
+    console.error('[Nexus Intelligence] Core fetch failure:', error);
     return {
-      totalViews: 0,
-      uniqueIPs: 0,
-      countries: 0,
-      cities: 0,
-      recentViews: [],
-      topLocations: [],
-      countryStats: [],
-      viewsByDate: [],
-      browserStats: [],
-      osStats: [],
-      deviceStats: []
+      totalViews: 0, uniqueIPs: 0, countries: 0, cities: 0,
+      recentViews: [], topLocations: [], countryStats: [],
+      viewsByDate: [], browserStats: [], osStats: [], deviceStats: []
     };
   }
 };
@@ -198,11 +197,12 @@ export const clearAllLogs = async (pin: string) => {
   });
 };
 
+/**
+ * Converts ISO 3166-1 alpha-2 country codes into high-resolution emoji flags.
+ */
 export const getFlagEmoji = (countryCode: string) => {
   if (!countryCode || countryCode === '??') return '🏳️';
-  const codePoints = countryCode
+  return countryCode
     .toUpperCase()
-    .split('')
-    .map(char => 127397 + char.charCodeAt(0));
-  return String.fromCodePoint(...codePoints);
+    .replace(/./g, char => String.fromCodePoint(127397 + char.charCodeAt(0)));
 };
