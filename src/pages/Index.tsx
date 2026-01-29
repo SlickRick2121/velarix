@@ -6,6 +6,7 @@ import About from '@/components/About';
 import Portfolio from '@/components/Portfolio';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
+import LegalNoticeCard from '@/components/LegalNoticeCard';
 
 declare global {
   interface Window {
@@ -23,12 +24,12 @@ export default function Index() {
       const threeScript = document.createElement('script');
       threeScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js';
       threeScript.async = true;
-      
+
       threeScript.onload = () => {
         const vantaScript = document.createElement('script');
         vantaScript.src = 'https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js';
         vantaScript.async = true;
-        
+
         vantaScript.onload = () => {
           if (window.VANTA && vantaRef.current) {
             vantaEffect.current = window.VANTA.NET({
@@ -55,10 +56,10 @@ export default function Index() {
             });
           }
         };
-        
+
         document.body.appendChild(vantaScript);
       };
-      
+
       document.body.appendChild(threeScript);
     }
 
@@ -71,6 +72,7 @@ export default function Index() {
 
   return (
     <>
+      <LegalNoticeCard />
       <div ref={vantaRef} className="fixed inset-0 -z-10" />
       <div className="fixed inset-0 -z-10 bg-gradient-to-b from-background/70 via-background/60 to-background/70 pointer-events-none" />
       <div className="relative">
