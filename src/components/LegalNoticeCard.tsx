@@ -4,20 +4,24 @@ import { ShieldAlert } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 const LegalNoticeCard = () => {
+  const [isVisible, setIsVisible] = React.useState(true);
+
+  if (!isVisible) return null;
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-none">
+    <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 pointer-events-none">
       <motion.div
         initial={{ opacity: 0, scale: 0.8, y: 100 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ 
+        transition={{
           type: "spring",
           damping: 25,
           stiffness: 120,
-          delay: 0.5 
+          delay: 1 // Increased delay to ensure loader is gone
         }}
         className={cn(
           "pointer-events-auto max-w-2xl w-full",
-          "bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl",
+          "bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-8 shadow-[0_0_50px_rgba(0,0,0,0.5)]",
           "relative overflow-hidden group"
         )}
       >
@@ -69,15 +73,12 @@ const LegalNoticeCard = () => {
           </div>
 
           <div className="mt-8 flex justify-end">
-             <button 
-              onClick={() => {
-                const card = document.getElementById('legal-notice-card');
-                if (card) card.style.display = 'none';
-              }}
+            <button
+              onClick={() => setIsVisible(false)}
               className="px-6 py-2 bg-primary/20 hover:bg-primary/30 border border-primary/50 text-primary rounded-lg transition-all duration-300 uppercase text-sm font-bold tracking-widest"
-             >
-                Acknowledge
-             </button>
+            >
+              Acknowledge
+            </button>
           </div>
         </div>
       </motion.div>
