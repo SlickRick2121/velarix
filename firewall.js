@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 const db = new Database(path.join(__dirname, 'firewall.db'));
 
-// Initialize tables
+// Initialize tables and handle migrations
 db.exec(`
   CREATE TABLE IF NOT EXISTS page_accesses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,6 +42,14 @@ db.exec(`
   INSERT OR IGNORE INTO firewall_settings (key, value) VALUES ('admin_ip', '127.0.0.1');
 `);
 
+// Migration: Add is_blocked if missing
+try {
+    db.prepare("ALTER TABLE page_accesses ADD COLUMN is_blocked INTEGER DEFAULT 0").run();
+    console.log("[Firewall] Migration: Added is_blocked column to page_accesses");
+} catch (e) {
+    // Column already exists
+}
+
 const BOTS = [
     'Discordbot',
     'Twitterbot',
@@ -55,15 +63,8 @@ const BOTS = [
 export const geoMiddleware = async (req, res, next) => {
     // Bypasses
     const ua = req.headers['user-agent'] || '';
-    const isAdmin = req.headers['x-admin-auth'] === 'premium-admin'; // Example admin bypass
+    const isAdminHeader = req.headers['x-admin-auth'] === 'premium-admin';
     const isBot = BOTS.some(bot => ua.includes(bot));
-
-    // EMERGENCY BYPASS & ROBUSTNESS
-    const isLocalhost = req.connection?.remoteAddress === '127.0.0.1' || req.connection?.remoteAddress === '::1';
-    const hasSecretKey = req.query.bypass === process.env.FIREWALL_SECRET || req.headers['x-firewall-bypass'] === process.env.FIREWALL_SECRET;
-
-    const lockdownSetting = db.prepare("SELECT value FROM firewall_settings WHERE key = 'lockdown_active'").get();
-    const isLockdown = lockdownSetting && lockdownSetting.value === '1';
 
     // Get IP
     let ip = req.headers['cf-connecting-ip'] ||
@@ -74,30 +75,36 @@ export const geoMiddleware = async (req, res, next) => {
     if (ip.includes(',')) ip = ip.split(',')[0].trim();
     if (ip.includes('::ffff:')) ip = ip.split(':').pop();
 
+    const isLocalhost = ip === '127.0.0.1' || ip === '::1';
+    const hasSecretKey = req.query.bypass === process.env.FIREWALL_SECRET || req.headers['x-firewall-bypass'] === process.env.FIREWALL_SECRET;
+
+    const lockdownSetting = db.prepare("SELECT value FROM firewall_settings WHERE key = 'lockdown_active'").get();
+    const isLockdown = lockdownSetting && lockdownSetting.value === '1';
+
     const adminIpSetting = db.prepare("SELECT value FROM firewall_settings WHERE key = 'admin_ip'").get();
     const isAdminIp = adminIpSetting && ip === adminIpSetting.value;
 
-    // NEVER block these
-    if (isAdmin || isBot || isAdminIp || isLocalhost || hasSecretKey) {
+    // LOGGING BYPASSES (Crucial for debugging)
+    const shouldBypass = isAdminHeader || isBot || isAdminIp || isLocalhost || hasSecretKey;
+
+    if (shouldBypass) {
+        if (!isLocalhost || req.path.startsWith('/api')) {
+            console.log(`[Firewall Bypass] IP: ${ip} | Reason: ${isAdminHeader ? 'Header' : isBot ? 'Bot' : isAdminIp ? 'AdminIP' : hasSecretKey ? 'SecretKey' : 'Localhost'}`);
+        }
         return next();
     }
 
-    // If Lockdown is active, and NOT admin/bot, block everyone
+    // If Lockdown is active, and NOT bypassed
     if (isLockdown && req.path !== '/blocked') {
+        console.log(`[Firewall Lockdown] Blocking ${ip}`);
         return res.redirect('/blocked');
     }
 
-    // If IP is local (development), we might want a mock IP for testing
-    if (ip === '127.0.0.1' || ip === '::1') {
-        // ip = '8.8.8.8'; // Uncomment for testing
-    }
-
     try {
-        // Check if we already have this IP data in page_accesses to avoid over-calling ip-api (optional caching)
-        // For this implementation, we follow the "If unknown" logic
         let geoData = db.prepare('SELECT * FROM page_accesses WHERE ip = ? ORDER BY timestamp DESC LIMIT 1').get(ip);
 
         if (!geoData) {
+            console.log(`[Firewall] Fetching GeoIP for ${ip}...`);
             const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,regionName,city,lat,lon,isp,proxy,hosting,query`);
             const data = await response.json();
 
@@ -114,38 +121,34 @@ export const geoMiddleware = async (req, res, next) => {
                     proxy: data.proxy ? 1 : 0,
                     hosting: data.hosting ? 1 : 0
                 };
+                console.log(`[Firewall] GeoIP detected: ${geoData.country_code}`);
+            } else {
+                console.warn(`[Firewall] GeoIP fetch failed for ${ip}: ${data.message}`);
             }
         }
 
         if (geoData) {
-            // Log access
-            db.prepare(`
-        INSERT INTO page_accesses (ip, country_code, country_name, region, city, lat, lon, isp, proxy, hosting, user_agent, path)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
-                ip,
-                geoData.country_code,
-                geoData.country_name,
-                geoData.region,
-                geoData.city,
-                geoData.lat,
-                geoData.lon,
-                geoData.isp,
-                geoData.proxy,
-                geoData.hosting,
-                ua,
-                req.path,
-                0 // is_blocked
-            );
-
             // Check firewall
-            const isBlocked = db.prepare('SELECT 1 FROM blocked_countries WHERE country_code = ?').get(geoData.country_code);
+            const blockedRow = db.prepare('SELECT 1 FROM blocked_countries WHERE country_code = ?').get(geoData.country_code);
+            const isBlocked = !!blockedRow;
 
             if (isBlocked && req.path !== '/blocked') {
-                // Update log to mark as blocked
-                db.prepare('UPDATE page_accesses SET is_blocked = 1 WHERE id = (SELECT last_insert_rowid())').run();
+                console.log(`[Firewall BLOCK] Region ${geoData.country_code} for IP ${ip}`);
+
+                // Log as blocked attempt
+                db.prepare(`
+                    INSERT INTO page_accesses (ip, country_code, country_name, region, city, lat, lon, isp, proxy, hosting, user_agent, path, is_blocked)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+                `).run(ip, geoData.country_code, geoData.country_name, geoData.region, geoData.city, geoData.lat, geoData.lon, geoData.isp, geoData.proxy, geoData.hosting, ua, req.path);
+
                 return res.redirect('/blocked');
             }
+
+            // Log successful access
+            db.prepare(`
+                INSERT INTO page_accesses (ip, country_code, country_name, region, city, lat, lon, isp, proxy, hosting, user_agent, path, is_blocked)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+            `).run(ip, geoData.country_code, geoData.country_name, geoData.region, geoData.city, geoData.lat, geoData.lon, geoData.isp, geoData.proxy, geoData.hosting, ua, req.path);
 
             // NL Logic
             if (geoData.country_code === 'NL') {
@@ -156,8 +159,8 @@ export const geoMiddleware = async (req, res, next) => {
 
         next();
     } catch (err) {
-        console.error('GeoFirewall Error:', err);
-        next(); // Don't block if API fails
+        console.error('[Firewall Error]', err.message);
+        next();
     }
 };
 
