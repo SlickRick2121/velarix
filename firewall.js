@@ -128,13 +128,14 @@ export const geoMiddleware = async (req, res, next) => {
         }
 
         if (geoData) {
-            console.log(`[Firewall Audit] IP: ${ip} | Country: ${geoData.country_code} | Path: ${req.path}`);
+            const countryCode = (geoData.country_code || '').toUpperCase();
+            console.log(`[Firewall Audit] IP: ${ip} | detected: ${countryCode} | Path: ${req.path}`);
 
-            // Check firewall
-            const blockedRow = db.prepare('SELECT COUNT(*) as count FROM blocked_countries WHERE country_code = ?').get(geoData.country_code);
-            const isBlocked = blockedRow.count > 0;
+            // Check firewall with case-insensitive match
+            const blockedRow = db.prepare('SELECT 1 FROM blocked_countries WHERE UPPER(country_code) = ?').get(countryCode);
+            const isBlocked = !!blockedRow;
 
-            console.log(`[Firewall Audit] Block Check for ${geoData.country_code}: ${isBlocked ? 'BLOCKED' : 'ALLOWED'}`);
+            console.log(`[Firewall Audit] Result for ${countryCode}: ${isBlocked ? 'BLOCKED' : 'ALLOWED'}`);
 
             if (isBlocked && req.path !== '/blocked') {
                 console.log(`[Firewall Audit] REDIRECTING ${ip} to /blocked`);
