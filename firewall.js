@@ -128,30 +128,43 @@ export const geoMiddleware = async (req, res, next) => {
         }
 
         if (geoData) {
+            console.log(`[Firewall Audit] IP: ${ip} | Country: ${geoData.country_code} | Path: ${req.path}`);
+
             // Check firewall
-            const blockedRow = db.prepare('SELECT 1 FROM blocked_countries WHERE country_code = ?').get(geoData.country_code);
-            const isBlocked = !!blockedRow;
+            const blockedRow = db.prepare('SELECT COUNT(*) as count FROM blocked_countries WHERE country_code = ?').get(geoData.country_code);
+            const isBlocked = blockedRow.count > 0;
+
+            console.log(`[Firewall Audit] Block Check for ${geoData.country_code}: ${isBlocked ? 'BLOCKED' : 'ALLOWED'}`);
 
             if (isBlocked && req.path !== '/blocked') {
-                console.log(`[Firewall BLOCK] Region ${geoData.country_code} for IP ${ip}`);
+                console.log(`[Firewall Audit] REDIRECTING ${ip} to /blocked`);
 
                 // Log as blocked attempt
-                db.prepare(`
-                    INSERT INTO page_accesses (ip, country_code, country_name, region, city, lat, lon, isp, proxy, hosting, user_agent, path, is_blocked)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
-                `).run(ip, geoData.country_code, geoData.country_name, geoData.region, geoData.city, geoData.lat, geoData.lon, geoData.isp, geoData.proxy, geoData.hosting, ua, req.path);
+                try {
+                    db.prepare(`
+                        INSERT INTO page_accesses (ip, country_code, country_name, region, city, lat, lon, isp, proxy, hosting, user_agent, path, is_blocked)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+                    `).run(ip, geoData.country_code, geoData.country_name, geoData.region, geoData.city, geoData.lat, geoData.lon, geoData.isp, geoData.proxy, geoData.hosting, ua, req.path);
+                } catch (e) {
+                    console.error("[Firewall Audit] Log failure:", e.message);
+                }
 
                 return res.redirect('/blocked');
             }
 
             // Log successful access
-            db.prepare(`
-                INSERT INTO page_accesses (ip, country_code, country_name, region, city, lat, lon, isp, proxy, hosting, user_agent, path, is_blocked)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
-            `).run(ip, geoData.country_code, geoData.country_name, geoData.region, geoData.city, geoData.lat, geoData.lon, geoData.isp, geoData.proxy, geoData.hosting, ua, req.path);
+            try {
+                db.prepare(`
+                    INSERT INTO page_accesses (ip, country_code, country_name, region, city, lat, lon, isp, proxy, hosting, user_agent, path, is_blocked)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+                `).run(ip, geoData.country_code, geoData.country_name, geoData.region, geoData.city, geoData.lat, geoData.lon, geoData.isp, geoData.proxy, geoData.hosting, ua, req.path);
+            } catch (e) {
+                // Ignore log errors to avoid blocking user access
+            }
 
             // NL Logic
             if (geoData.country_code === 'NL') {
+                console.log("[Firewall Audit] NL User Detected - Activating Legal Notice");
                 req.isDutch = true;
                 res.locals.injectLegalNotice = true;
             }
