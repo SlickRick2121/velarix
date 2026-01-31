@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogIn, LogOut } from "lucide-react";
+import { Menu, X, LogIn, LogOut, Shield, Activity } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -52,7 +52,9 @@ const Navigation = () => {
     { label: 'Services', path: '/services' },
     { label: 'About', id: 'about' },
     { label: 'Portfolio', id: 'portfolio' },
-    ...(isAuthenticated ? [{ label: 'Analytics', path: '/analytics' }] : []),
+    ...(isAuthenticated ? [
+      { label: 'Intelligence', path: '/analytics', icon: <Activity className="w-3 h-3" /> },
+    ] : []),
     { label: 'Blog', path: '/blog' },
     { label: 'Status', path: '/status' },
     { label: 'Contact', id: 'contact' }
@@ -88,11 +90,12 @@ const Navigation = () => {
                 <button
                   key={link.label}
                   onClick={() => link.path ? handleNavigation(link.path) : scrollToSection(link.id!)}
-                  className={`transition-colors font-medium drop-shadow-sm ${isActive
+                  className={`transition-all font-medium drop-shadow-sm flex items-center gap-1.5 ${isActive
                     ? 'text-[#FE4A49]'
                     : 'text-foreground hover:text-accent'
                     }`}
                 >
+                  {link.icon && link.icon}
                   {link.label}
                 </button>
               );

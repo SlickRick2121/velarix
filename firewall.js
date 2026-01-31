@@ -24,6 +24,7 @@ db.exec(`
     hosting INTEGER,
     user_agent TEXT,
     path TEXT,
+    is_blocked INTEGER DEFAULT 0,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -57,10 +58,14 @@ export const geoMiddleware = async (req, res, next) => {
     const isAdmin = req.headers['x-admin-auth'] === 'premium-admin'; // Example admin bypass
     const isBot = BOTS.some(bot => ua.includes(bot));
 
+    // EMERGENCY BYPASS & ROBUSTNESS
+    const isLocalhost = req.connection?.remoteAddress === '127.0.0.1' || req.connection?.remoteAddress === '::1';
+    const hasSecretKey = req.query.bypass === process.env.FIREWALL_SECRET || req.headers['x-firewall-bypass'] === process.env.FIREWALL_SECRET;
+
     const lockdownSetting = db.prepare("SELECT value FROM firewall_settings WHERE key = 'lockdown_active'").get();
     const isLockdown = lockdownSetting && lockdownSetting.value === '1';
 
-    // Get IP first for lockdown check
+    // Get IP
     let ip = req.headers['cf-connecting-ip'] ||
         req.headers['x-forwarded-for'] ||
         req.socket.remoteAddress ||
@@ -72,7 +77,8 @@ export const geoMiddleware = async (req, res, next) => {
     const adminIpSetting = db.prepare("SELECT value FROM firewall_settings WHERE key = 'admin_ip'").get();
     const isAdminIp = adminIpSetting && ip === adminIpSetting.value;
 
-    if (isAdmin || isBot || isAdminIp) {
+    // NEVER block these
+    if (isAdmin || isBot || isAdminIp || isLocalhost || hasSecretKey) {
         return next();
     }
 
@@ -128,13 +134,16 @@ export const geoMiddleware = async (req, res, next) => {
                 geoData.proxy,
                 geoData.hosting,
                 ua,
-                req.path
+                req.path,
+                0 // is_blocked
             );
 
             // Check firewall
             const isBlocked = db.prepare('SELECT 1 FROM blocked_countries WHERE country_code = ?').get(geoData.country_code);
 
             if (isBlocked && req.path !== '/blocked') {
+                // Update log to mark as blocked
+                db.prepare('UPDATE page_accesses SET is_blocked = 1 WHERE id = (SELECT last_insert_rowid())').run();
                 return res.redirect('/blocked');
             }
 
@@ -171,7 +180,13 @@ export const firewallApi = (app) => {
     app.get('/api/firewall/status', (req, res) => {
         const blocked = db.prepare('SELECT country_code FROM blocked_countries').all();
         const settings = db.prepare('SELECT * FROM firewall_settings').all();
-        res.json({ blocked, settings });
+        const stats = db.prepare(`
+            SELECT country_code, COUNT(*) as count 
+            FROM page_accesses 
+            WHERE is_blocked = 1 
+            GROUP BY country_code
+        `).all();
+        res.json({ blocked, settings, stats });
     });
 
     app.post('/api/firewall/bulk-toggle', (req, res) => {

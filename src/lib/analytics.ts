@@ -1,5 +1,5 @@
-
 export interface VisitorData {
+  id: number;
   status: string;
   country: string;
   countryCode: string;
