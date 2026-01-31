@@ -31,6 +31,14 @@ db.exec(`
     country_code TEXT PRIMARY KEY,
     added_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS firewall_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT
+  );
+
+  INSERT OR IGNORE INTO firewall_settings (key, value) VALUES ('lockdown_active', '0');
+  INSERT OR IGNORE INTO firewall_settings (key, value) VALUES ('admin_ip', '127.0.0.1');
 `);
 
 const BOTS = [
@@ -49,11 +57,10 @@ export const geoMiddleware = async (req, res, next) => {
     const isAdmin = req.headers['x-admin-auth'] === 'premium-admin'; // Example admin bypass
     const isBot = BOTS.some(bot => ua.includes(bot));
 
-    if (isAdmin || isBot) {
-        return next();
-    }
+    const lockdownSetting = db.prepare("SELECT value FROM firewall_settings WHERE key = 'lockdown_active'").get();
+    const isLockdown = lockdownSetting && lockdownSetting.value === '1';
 
-    // Get IP
+    // Get IP first for lockdown check
     let ip = req.headers['cf-connecting-ip'] ||
         req.headers['x-forwarded-for'] ||
         req.socket.remoteAddress ||
@@ -61,6 +68,18 @@ export const geoMiddleware = async (req, res, next) => {
 
     if (ip.includes(',')) ip = ip.split(',')[0].trim();
     if (ip.includes('::ffff:')) ip = ip.split(':').pop();
+
+    const adminIpSetting = db.prepare("SELECT value FROM firewall_settings WHERE key = 'admin_ip'").get();
+    const isAdminIp = adminIpSetting && ip === adminIpSetting.value;
+
+    if (isAdmin || isBot || isAdminIp) {
+        return next();
+    }
+
+    // If Lockdown is active, and NOT admin/bot, block everyone
+    if (isLockdown && req.path !== '/blocked') {
+        return res.redirect('/blocked');
+    }
 
     // If IP is local (development), we might want a mock IP for testing
     if (ip === '127.0.0.1' || ip === '::1') {
@@ -151,6 +170,36 @@ export const firewallApi = (app) => {
 
     app.get('/api/firewall/status', (req, res) => {
         const blocked = db.prepare('SELECT country_code FROM blocked_countries').all();
-        res.json(blocked);
+        const settings = db.prepare('SELECT * FROM firewall_settings').all();
+        res.json({ blocked, settings });
+    });
+
+    app.post('/api/firewall/bulk-toggle', (req, res) => {
+        const { countryCodes, action } = req.body;
+        if (!countryCodes || !Array.isArray(countryCodes)) return res.status(400).json({ error: 'Country codes array required' });
+
+        const transaction = db.transaction((codes) => {
+            for (const code of codes) {
+                if (action === 'block') {
+                    db.prepare('INSERT OR IGNORE INTO blocked_countries (country_code) VALUES (?)').run(code);
+                } else {
+                    db.prepare('DELETE FROM blocked_countries WHERE country_code = ?').run(code);
+                }
+            }
+        });
+
+        transaction(countryCodes);
+        res.json({ success: true, count: countryCodes.length });
+    });
+
+    app.post('/api/firewall/lockdown', (req, res) => {
+        const { active, adminIp } = req.body;
+        if (active !== undefined) {
+            db.prepare("UPDATE firewall_settings SET value = ? WHERE key = 'lockdown_active'").run(active ? '1' : '0');
+        }
+        if (adminIp) {
+            db.prepare("UPDATE firewall_settings SET value = ? WHERE key = 'admin_ip'").run(adminIp);
+        }
+        res.json({ success: true });
     });
 };
