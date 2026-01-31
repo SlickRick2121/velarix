@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYSTEM INTERCEPT | ACCESS DENIED</title>
+    <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-red: #ff003c;
+            --dark-bg: #050505;
+            --terminal-gray: #1a1a1a;
+            --text-dim: #888;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--neon-red);
+            font-family: 'JetBrains Mono', monospace;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            text-transform: uppercase;
+        }
+
+        .scanline {
+            width: 100%;
+            height: 100px;
+            z-index: 10;
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(255, 0, 60, 0.1) 50%, rgba(0, 0, 0, 0) 100%);
+            opacity: 0.1;
+            position: absolute;
+            bottom: 100%;
+            animation: scanline 6s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { bottom: 100%; }
+            100% { bottom: -100px; }
+        }
+
+        .noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://grainy-gradients.vercel.app/noise.svg');
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            border: 2px solid var(--neon-red);
+            background: rgba(26, 26, 26, 0.8);
+            padding: 40px;
+            position: relative;
+            box-shadow: 0 0 30px rgba(255, 0, 60, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .container::before {
+            content: "NEXUS FIREWALL V4.0.2";
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: var(--dark-bg);
+            padding: 0 10px;
+            font-size: 12px;
+            letter-spacing: 2px;
+        }
+
+        h1 {
+            font-family: 'Audiowide', cursive;
+            font-size: 3rem;
+            margin-bottom: 20px;
+            letter-spacing: 5px;
+            text-shadow: 0 0 10px var(--neon-red);
+            animation: flicker 0.2s infinite alternate;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+
+        .status-box {
+            border: 1px solid rgba(255, 0, 60, 0.3);
+            padding: 20px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .label {
+            color: var(--text-dim);
+        }
+
+        .value {
+            color: #fff;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        .warning-text {
+            font-size: 11px;
+            line-height: 1.6;
+            color: var(--text-dim);
+            margin-top: 30px;
+            border-top: 1px solid var(--terminal-gray);
+            padding-top: 20px;
+        }
+
+        .glitch-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            border: 1px solid var(--neon-red);
+            background: transparent;
+            color: var(--neon-red);
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .glitch-btn:hover {
+            background: var(--neon-red);
+            color: #000;
+            box-shadow: 0 0 20px var(--neon-red);
+        }
+
+        .corners {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .corners::before, .corners::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: var(--neon-red);
+            border-style: solid;
+        }
+
+        .corners::before {
+            top: -5px;
+            left: -5px;
+            border-width: 3px 0 0 3px;
+        }
+
+        .corners::after {
+            bottom: -5px;
+            right: -5px;
+            border-width: 0 3px 3px 0;
+        }
+
+        #coords {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 10px;
+            color: var(--text-dim);
+        }
+    </style>
+</head>
+<body>
+    <div class="noise"></div>
+    <div class="scanline"></div>
+
+    <div class="container">
+        <div class="corners"></div>
+        <h1>TRANSMISSION INTERCEPTED</h1>
+        
+        <div class="status-box">
+            <div class="row">
+                <span class="label">STATUS:</span>
+                <span class="value">REGION_BLOCKED</span>
+            </div>
+            <div class="row">
+                <span class="label">PROTOCOL:</span>
+                <span class="value">GEO-FIREWALL V4.0</span>
+            </div>
+            <div class="row">
+                <span class="label">SECURITY_CORE:</span>
+                <span class="value">ACTIVE</span>
+            </div>
+            <div class="row">
+                <span class="label">THREAT_LEVEL:</span>
+                <span class="value" style="color: #ff0000;">RESTRICTED</span>
+            </div>
+        </div>
+
+        <p>Your geographic location has been flagged by the system security protocols. Access to this node from your current region is strictly prohibited.</p>
+
+        <div class="warning-text">
+            UNAUTHORIZED ACCESS ATTEMPTS ARE LOGGED. <br>
+            YOUR IP ADDRESS AND REGIONAL METADATA HAVE BEEN TRANSMITTED TO THE CENTRAL SECURITY HUB.
+        </div>
+
+        <button class="glitch-btn" onclick="window.history.back()">ABORT_TRANSMISSION</button>
+        
+        <div id="coords">FETCHING_COORDINATES...</div>
+    </div>
+
+    <script>
+        // Fake dynamic coordinates
+        setInterval(() => {
+            const lat = (Math.random() * 180 - 90).toFixed(4);
+            const lon = (Math.random() * 360 - 180).toFixed(4);
+            document.getElementById('coords').innerText = `LOC: ${lat}N / ${lon}E`;
+        }, 1000);
+    </script>
+</body>
+</html>

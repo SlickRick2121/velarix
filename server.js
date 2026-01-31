@@ -5,6 +5,8 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import fs from 'fs';
+import { geoMiddleware, firewallApi } from './firewall.js';
 
 dotenv.config();
 
@@ -25,6 +27,12 @@ const pool = new Pool({
 
 app.use(cors());
 app.use(express.json());
+
+// Geo-Firewall Middleware
+app.use(geoMiddleware);
+
+// Firewall API routes
+firewallApi(app);
 
 // Initialize Database Schema
 const initDb = async () => {
@@ -193,9 +201,31 @@ app.delete('/api/analytics/:id', async (req, res) => {
 // Serve static files
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// SPA Fallback
+// Serve blocked page
+app.get('/blocked', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'blocked.html'));
+});
+
+// SPA Fallback with NL Script Injection
 app.use((req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    let filePath = path.join(__dirname, 'dist', 'index.html');
+
+    // Check if dist/index.html exists (production)
+    if (!fs.existsSync(filePath)) {
+        // Fallback for development if dist doesn't exist yet
+        res.status(404).send('Application not built. Run npm run build.');
+        return;
+    }
+
+    let html = fs.readFileSync(filePath, 'utf8');
+
+    if (req.isDutch) {
+        const script = '<script>window.FORCE_LEGAL_NOTICE = true;</script>';
+        html = html.replace('<head>', '<head>' + script);
+        console.log('[Firewall] Injected Legal Notice for NL visitor');
+    }
+
+    res.send(html);
 });
 
 app.listen(port, () => {
