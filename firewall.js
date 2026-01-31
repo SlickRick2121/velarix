@@ -105,25 +105,25 @@ export const geoMiddleware = async (req, res, next) => {
 
         if (!geoData) {
             console.log(`[Firewall] Fetching GeoIP for ${ip}...`);
-            const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,regionName,city,lat,lon,isp,proxy,hosting,query`);
+            const response = await fetch(`https://ipapi.co/${ip}/json/`);
             const data = await response.json();
 
-            if (data.status === 'success') {
+            if (!data.error) {
                 geoData = {
-                    ip: data.query,
-                    country_code: data.countryCode,
-                    country_name: data.country,
-                    region: data.regionName,
+                    ip: data.ip,
+                    country_code: data.country_code,
+                    country_name: data.country_name,
+                    region: data.region,
                     city: data.city,
-                    lat: data.lat,
-                    lon: data.lon,
-                    isp: data.isp,
-                    proxy: data.proxy ? 1 : 0,
-                    hosting: data.hosting ? 1 : 0
+                    lat: data.latitude,
+                    lon: data.longitude,
+                    isp: data.org,
+                    proxy: 0,
+                    hosting: 0
                 };
                 console.log(`[Firewall] GeoIP detected: ${geoData.country_code}`);
             } else {
-                console.warn(`[Firewall] GeoIP fetch failed for ${ip}: ${data.message}`);
+                console.warn(`[Firewall] GeoIP fetch failed for ${ip}: ${data.reason}`);
             }
         }
 
