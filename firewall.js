@@ -60,7 +60,10 @@ export const geoMiddleware = async (req, res, next) => {
     if (ip.includes('::ffff:')) ip = ip.split(':').pop();
 
     const isLocalhost = ip === '127.0.0.1' || ip === '::1';
-    const hasSecretKey = req.query.bypass === process.env.FIREWALL_SECRET || req.headers['x-firewall-bypass'] === process.env.FIREWALL_SECRET;
+
+    // SECURE BYPASS CHECK
+    const systemSecret = process.env.FIREWALL_SECRET;
+    const hasSecretKey = systemSecret && (req.query.bypass === systemSecret || req.headers['x-firewall-bypass'] === systemSecret);
 
     const settings = db.prepare("SELECT key, value FROM firewall_settings").all();
     const isLockdown = settings.find(s => s.key === 'lockdown_active')?.value === '1';
@@ -68,7 +71,7 @@ export const geoMiddleware = async (req, res, next) => {
 
     const isAdminIp = adminIp && (ip === adminIp);
 
-    // RESTORED BYPASS LOGIC
+    // BYPASS LOGIC
     if (isAdminHeader || isBot || isAdminIp || isLocalhost || hasSecretKey) {
         if (!isLocalhost || req.path.startsWith('/api')) {
             console.log(`[FIREWALL BYPASS] IP: ${ip} | Reason: ${isAdminHeader ? 'Header' :

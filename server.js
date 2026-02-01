@@ -1,14 +1,13 @@
+import dotenv from 'dotenv';
+dotenv.config();
 
 import express from 'express';
 import pg from 'pg';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
 import fs from 'fs';
 import { geoMiddleware, firewallApi } from './firewall.js';
-
-dotenv.config();
 
 const { Pool } = pg;
 const __filename = fileURLToPath(import.meta.url);
