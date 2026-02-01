@@ -60,8 +60,6 @@ export const geoMiddleware = async (req, res, next) => {
     if (ip.includes('::ffff:')) ip = ip.split(':').pop();
 
     const isLocalhost = ip === '127.0.0.1' || ip === '::1';
-
-    // TEMPORARY FOR TESTING: Force ignore secret key if it's the specific test key
     const hasSecretKey = req.query.bypass === process.env.FIREWALL_SECRET || req.headers['x-firewall-bypass'] === process.env.FIREWALL_SECRET;
 
     const settings = db.prepare("SELECT key, value FROM firewall_settings").all();
@@ -70,15 +68,17 @@ export const geoMiddleware = async (req, res, next) => {
 
     const isAdminIp = adminIp && (ip === adminIp);
 
-    // BYPASS LOGIC - Restricted for testing
-    // We disable the secret key bypass for NL testing specifically if it matches
-    if (isAdminHeader || isBot || (isAdminIp && !isLocalhost)) {
-        console.log(`[FIREWALL BYPASS] IP: ${ip} | Reason: ${isAdminHeader ? 'Header' : isBot ? 'Bot' : 'AdminIP'}`);
+    // RESTORED BYPASS LOGIC
+    if (isAdminHeader || isBot || isAdminIp || isLocalhost || hasSecretKey) {
+        if (!isLocalhost || req.path.startsWith('/api')) {
+            console.log(`[FIREWALL BYPASS] IP: ${ip} | Reason: ${isAdminHeader ? 'Header' :
+                    isBot ? 'Bot' :
+                        isAdminIp ? 'AdminIP' :
+                            hasSecretKey ? 'SecretKey' : 'Localhost'
+                }`);
+        }
         return next();
     }
-
-    // Only allow localhost to bypass without check
-    if (isLocalhost) return next();
 
     if (isLockdown && req.path !== '/blocked') {
         console.log(`[FIREWALL LOCKDOWN] Blocking ${ip}`);
