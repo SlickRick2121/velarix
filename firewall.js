@@ -75,9 +75,9 @@ export const geoMiddleware = async (req, res, next) => {
     if (isAdminHeader || isBot || isAdminIp || isLocalhost || hasSecretKey) {
         if (!isLocalhost || req.path.startsWith('/api')) {
             console.log(`[FIREWALL BYPASS] IP: ${ip} | Reason: ${isAdminHeader ? 'Header' :
-                    isBot ? 'Bot' :
-                        isAdminIp ? 'AdminIP' :
-                            hasSecretKey ? 'SecretKey' : 'Localhost'
+                isBot ? 'Bot' :
+                    isAdminIp ? 'AdminIP' :
+                        hasSecretKey ? 'SecretKey' : 'Localhost'
                 }`);
         }
         return next();
@@ -94,23 +94,28 @@ export const geoMiddleware = async (req, res, next) => {
 
         if (!geoData) {
             console.log(`[FIREWALL] Calling API for ${ip}...`);
-            // Use ip-api.com again but with error handling and fallback
-            const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,countryCode,country,regionName,city,lat,lon,isp,query`);
-            const data = await response.json();
+            try {
+                const response = await fetch(`https://ipapi.co/${ip}/json/`);
+                const data = await response.json();
 
-            if (data.status === 'success') {
-                geoData = {
-                    ip: data.query,
-                    country_code: data.countryCode,
-                    country_name: data.country,
-                    region: data.regionName,
-                    city: data.city,
-                    lat: data.lat,
-                    lon: data.lon,
-                    isp: data.isp,
-                    proxy: 0,
-                    hosting: 0
-                };
+                if (!data.error) {
+                    geoData = {
+                        ip: data.ip,
+                        country_code: data.country_code,
+                        country_name: data.country_name,
+                        region: data.region,
+                        city: data.city,
+                        lat: data.latitude,
+                        lon: data.longitude,
+                        isp: data.org,
+                        proxy: 0,
+                        hosting: 0
+                    };
+                } else {
+                    console.warn(`[FIREWALL] API Error for ${ip}:`, data.reason);
+                }
+            } catch (apiErr) {
+                console.error(`[FIREWALL] API Fetch Failed:`, apiErr.message);
             }
         }
 
