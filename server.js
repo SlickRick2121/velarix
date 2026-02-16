@@ -79,6 +79,9 @@ app.get('/api/heartbeat-data', (req, res) => {
 });
 
 // 4. Serve Static Files
+// Legacy Redirects
+app.get('/adminperm/firewall.html', (req, res) => res.redirect('/firewall'));
+
 // Serve public folder for status.html and others
 app.use(express.static(path.join(__dirname, 'public')));
 // Serve dist folder for the specific React App build

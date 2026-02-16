@@ -8,8 +8,8 @@ const projects = [
   {
     id: 1,
     title: "My Portfolio",
-    url: "https://esco.veroe.fun",
-    image: "https://s0.wp.com/mshots/v1/https://esco.veroe.fun?w=800",
+    url: "https://me.veroe.fun",
+    image: "https://s0.wp.com/mshots/v1/https://me.veroe.fun?w=800",
     category: "Metaphysical App",
     description: "Escos' Work",
     technologies: ["React", "TypeScript", "Tailwind CSS"],
@@ -28,8 +28,8 @@ const projects = [
   {
     id: 4,
     title: "My Astro Signs",
-    url: "https://escosigns.veroe.fun",
-    image: "https://s0.wp.com/mshots/v1/https://escosigns.veroe.fun?w=800",
+    url: "https://mysign.veroe.fun",
+    image: "https://s0.wp.com/mshots/v1/https://mysign.veroe.fun?w=800",
     category: "Personal",
     description: "My Signs And Overview",
     technologies: ["React", "Tailwind"],
