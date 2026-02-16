@@ -6,7 +6,7 @@ import About from '@/components/About';
 import Portfolio from '@/components/Portfolio';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
-import LegalNoticeCard from '@/components/LegalNoticeCard';
+import VeroeLink from '@/components/VeroeLink';
 
 declare global {
   interface Window {
@@ -72,7 +72,7 @@ export default function Index() {
 
   return (
     <>
-      <LegalNoticeCard />
+      <VeroeLink />
       <div ref={vantaRef} className="fixed inset-0 -z-10" />
       <div className="fixed inset-0 -z-10 bg-gradient-to-b from-background/70 via-background/60 to-background/70 pointer-events-none" />
       <div className="relative">
