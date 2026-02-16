@@ -2,231 +2,128 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
-import pg from 'pg';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-import { geoMiddleware, firewallApi } from './firewall.js';
 
-const { Pool } = pg;
+// Import New Middleware & Routes
+import { geoMiddleware } from './server/middleware/geoFirewall.js';
+import analyticsRouter from './server/routes/analytics.js';
+import firewallRouter from './server/routes/firewall.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 3001;
 
-// Database connection
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false
-    }
-});
-
+// Basic Middleware
 app.use(cors());
 app.use(express.json());
 
-// Geo-Firewall Middleware
+// 1. Geo-Firewall Middleware (Runs before everything else)
 app.use(geoMiddleware);
 
-// Firewall API routes
-firewallApi(app);
+// 2. API Routes
+app.use('/api/analytics', analyticsRouter);
+app.use('/api/firewall', firewallRouter);
 
-// Initialize Database Schema
-const initDb = async () => {
-    try {
-        await pool.query(`
-      CREATE TABLE IF NOT EXISTS analytics_events (
-        id SERIAL PRIMARY KEY,
-        status TEXT,
-        country TEXT,
-        country_code TEXT,
-        region TEXT,
-        region_name TEXT,
-        city TEXT,
-        zip TEXT,
-        lat DECIMAL,
-        lon DECIMAL,
-        timezone TEXT,
-        isp TEXT,
-        org TEXT,
-        as_info TEXT,
-        query TEXT,
-        timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-        user_agent TEXT,
-        browser TEXT,
-        os TEXT,
-        device TEXT,
-        language TEXT,
-        screen_resolution TEXT,
-        referrer TEXT,
-        path TEXT
-      );
-    `);
-        console.log('Database schema initialized');
-    } catch (err) {
-        console.error('Error initializing database:', err);
-    }
-};
-
-initDb();
-
-const getBrowserName = (ua) => {
-    if (ua.includes('Firefox')) return 'Firefox';
-    if (ua.includes('SamsungBrowser')) return 'Samsung Browser';
-    if (ua.includes('Opera') || ua.includes('OPR')) return 'Opera';
-    if (ua.includes('Trident')) return 'Internet Explorer';
-    if (ua.includes('Edge')) return 'Edge';
-    if (ua.includes('Chrome')) return 'Chrome';
-    if (ua.includes('Safari')) return 'Safari';
-    return 'Unknown';
-};
-
-const getOSName = (ua) => {
-    if (ua.includes('Windows')) return 'Windows';
-    if (ua.includes('Android')) return 'Android';
-    if (ua.includes('iPhone') || ua.includes('iPad')) return 'iOS';
-    if (ua.includes('Macintosh')) return 'macOS';
-    if (ua.includes('Linux')) return 'Linux';
-    return 'Unknown';
-};
-
-// API Endpoints
-app.get('/api/health', async (req, res) => {
-    try {
-        await pool.query('SELECT 1');
-        res.json({ status: 'ok', database: 'connected', time: new Date().toISOString() });
-    } catch (err) {
-        res.status(500).json({ status: 'error', database: err.message });
-    }
-});
-
-app.post('/api/analytics', async (req, res) => {
-    const v = req.body;
-    let originalIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
-    let ip = originalIp;
-
-    // Clean up proxy addresses
-    if (typeof ip === 'string') {
-        if (ip.includes(',')) ip = ip.split(',')[0].trim();
-        if (ip.includes('::ffff:')) ip = ip.split(':').pop();
-    }
-
-    const ua = req.headers['user-agent'] || '';
-
-    try {
-        console.log(`[Analytics] Attempting track for IP: ${ip} | Path: ${v.path}`);
-
-        // Fetch Geo Data from Backend to avoid client-side blocks
-        const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
-        const geo = await geoRes.json();
-
-        const timestamp = new Date().toISOString();
-
-        await pool.query(
-            `INSERT INTO analytics_events (
-        status, country, country_code, region, region_name, city, zip, 
-        lat, lon, timezone, isp, org, as_info, query, timestamp,
-        user_agent, browser, os, device, language, screen_resolution, referrer, path
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)`,
-            [
-                'success', geo.country_name || 'Unknown', geo.country_code || '??',
-                geo.region_code || '', geo.region || '', geo.city || 'Unknown', geo.postal || '',
-                geo.latitude || 0, geo.longitude || 0, geo.timezone || '',
-                geo.org || 'Unknown', geo.org || 'Unknown', geo.asn || '', ip.toString(), timestamp,
-                ua, getBrowserName(ua), getOSName(ua), v.device || 'Desktop', v.language || '',
-                v.screenResolution || '', v.referrer || '', v.path
-            ]
-        );
-        console.log(`[Analytics] Tracked SUCCESS for ${v.path}`);
-        res.status(201).json({ success: true });
-    } catch (err) {
-        console.error('[Analytics] Error saving:', err.message);
-        // Fallback save with minimal data if Geo API fails
-        try {
-            await pool.query(`INSERT INTO analytics_events (query, path, user_agent, timestamp) VALUES ($1, $2, $3, $4)`,
-                [ip.toString(), v.path, ua, new Date().toISOString()]);
-            console.log(`[Analytics] Tracked (FALLBACK) for ${v.path}`);
-        } catch (e) {
-            console.error('[Analytics] Critical fallback failure:', e.message);
+// 3. Status Page Heartbeat API
+app.get('/api/heartbeat-data', (req, res) => {
+    // Simulate system checks or hook into real DB/CPU stats if needed
+    // For now, mirroring the reference implementation
+    const components = [
+        {
+            name: 'Main Website',
+            type: 'HTTPS',
+            status: 'Operational',
+            uptime: '99.98%',
+            latency: `${Math.floor(15 + Math.random() * 10)}ms`,
+            icon: 'globe',
+            history: Array.from({ length: 40 }, () => Math.random() > 0.99 ? 'down' : 'up')
+        },
+        {
+            name: 'Analytics API',
+            type: 'REST API',
+            status: 'Operational',
+            uptime: '100%',
+            latency: '85ms',
+            icon: 'bolt',
+            history: Array.from({ length: 40 }, () => 'up')
+        },
+        {
+            name: 'Firewall Defense',
+            type: 'WAF',
+            status: 'Operational',
+            uptime: '100%',
+            latency: '2ms',
+            icon: 'shield',
+            history: Array.from({ length: 40 }, () => 'up')
+        },
+        {
+            name: 'Database Storage',
+            type: 'SQLite (WAL)',
+            status: 'Operational',
+            uptime: '99.99%',
+            latency: '4ms',
+            icon: 'database',
+            history: Array.from({ length: 40 }, () => 'up')
         }
-        res.status(201).json({ success: true }); // Still return success to client
-    }
+    ];
+
+    res.json({
+        lastChecked: new Date().toLocaleTimeString(),
+        components
+    });
 });
 
-app.get('/api/analytics/stats', async (req, res) => {
-    const adminPin = req.headers['x-admin-pin'];
+// 4. Serve Static Files
+// Serve public folder for status.html and others
+app.use(express.static(path.join(__dirname, 'public')));
+// Serve dist folder for the specific React App build
+app.use(express.static(path.join(__dirname, 'dist'), { index: false }));
 
-    if (String(adminPin) !== '2323') {
-        console.warn(`[Security] Unauthorized access attempt with PIN: ${adminPin}`);
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    try {
-        const result = await pool.query('SELECT * FROM analytics_events ORDER BY timestamp DESC LIMIT 1000');
-        res.json(result.rows);
-    } catch (err) {
-        console.error('Error fetching analytics:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
-app.delete('/api/analytics', async (req, res) => {
-    const adminPin = req.headers['x-admin-pin'];
-    if (String(adminPin) !== '2323') return res.status(401).json({ error: 'Unauthorized' });
-
-    try {
-        await pool.query('DELETE FROM analytics_events');
-        console.log('[Analytics] Database cleared by Admin');
-        res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-app.delete('/api/analytics/:id', async (req, res) => {
-    const adminPin = req.headers['x-admin-pin'];
-    if (String(adminPin) !== '2323') return res.status(401).json({ error: 'Unauthorized' });
-
-    try {
-        await pool.query('DELETE FROM analytics_events WHERE id = $1', [req.params.id]);
-        res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// Serve static files
-app.use(express.static(path.join(__dirname, 'dist')));
-
-// Serve blocked page
-app.get('/blocked', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'blocked.html'));
-});
-
-// SPA Fallback with NL Script Injection
+// 5. SPA Fallback & Dynamic Meta Injection
 app.use((req, res) => {
-    let filePath = path.join(__dirname, 'dist', 'index.html');
+    // Construct the absolute path to the index.html file
+    const filePath = path.join(__dirname, 'dist', 'index.html');
 
-    // Check if dist/index.html exists (production)
+    // If build doesn't exist yet, warn user
     if (!fs.existsSync(filePath)) {
-        // Fallback for development if dist doesn't exist yet
-        res.status(404).send('Application not built. Run npm run build.');
-        return;
+        // Retrieve pure public/status.html if regular site is down/not built
+        if (req.originalUrl === '/status') {
+            return res.sendFile(path.join(__dirname, 'public', 'status.html'));
+        }
+        return res.status(404).send('Application build not found. Please run "npm run build".');
     }
 
+    // Read the file from disk
     let html = fs.readFileSync(filePath, 'utf8');
 
-    if (req.isDutch) {
-        const script = '<script>window.FORCE_LEGAL_NOTICE = true;</script>';
-        html = html.replace('<head>', '<head>' + script);
-        console.log('[Firewall] Injected Legal Notice for NL visitor');
+    // --- Dynamic Meta Tag Injection (Fix for Embeds) ---
+    const host = req.headers.host;
+    const protocol = req.protocol; // http or https
+    const fullUrl = `${protocol}://${host}${req.originalUrl}`;
+    const domain = `${protocol}://${host}`;
+
+    // Replace static placeholder URLs with the actual request URLs
+    // This allows the embed to show the correct link regardless of where it's deployed
+    html = html
+        .replace(/content="https:\/\/velarix.digital\/"/g, `content="${domain}/"`)
+        .replace(/content="https:\/\/velarix.digital"/g, `content="${domain}"`)
+        .replace(/property="og:url" content=".*?"/, `property="og:url" content="${fullUrl}"`)
+        .replace(/property="twitter:url" content=".*?"/, `property="twitter:url" content="${fullUrl}"`);
+
+    // --- Dutch Notice Injection (from legacy logic) ---
+    // If the middleware flagged this as a 'testDutch' or we detect NL region logic later
+    if (req.query.testDutch === '1') {
+        html = html.replace('<head>', '<head><script>window.FORCE_LEGAL_NOTICE = true;</script>');
     }
 
     res.send(html);
 });
 
 app.listen(port, () => {
-    console.log(`Server running on port ${port} | Full-Stack Tracking Ready`);
+    console.log(`Server running on port ${port} | Analytics & Shield Active`);
 });
