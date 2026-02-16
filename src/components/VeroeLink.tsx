@@ -18,7 +18,7 @@ const VeroeLink = () => {
             }}
             whileHover={{ scale: 1.02, x: 8 }}
             whileTap={{ scale: 0.98 }}
-            className="fixed left-8 bottom-12 z-[50] flex items-center gap-4 px-6 py-4 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] hover:border-primary/40 hover:bg-black/60 transition-all duration-500 group overflow-hidden"
+            className="fixed left-12 top-40 z-[50] flex items-center gap-4 px-6 py-4 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] hover:border-primary/40 hover:bg-black/60 transition-all duration-500 group overflow-hidden"
         >
             {/* Background Animated Gradient */}
             <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-purple-500/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 animate-gradient-x" />
